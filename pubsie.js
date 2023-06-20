@@ -6,49 +6,55 @@ const {
   IncorrectMimeTypeError,
   NoMimeTypeFileError,
   EpubEncryptedError,
+  RequiredEpubMetadataMissing,
 } = require("./pubsie.error.js");
 
 class EPUB {
   constructor(file, output) {
     this.file = file;
     this.output = output;
-    this.#metaInit();
+    this.#infoInit();
   }
 
-  #metaInit() {
-    this.meta = {
+  #infoInit() {
+    this.info = {
       mimetype: "",
-      opf: [],
+      opf: [], // .opf files [content.opf]
+      epubVersion: "", // 3+ recommended, legacy features will not be maintained
+      metadata: {},
     };
+  }
+
+  #getEntry(name) {
+    return this.entries.find((item) => item.entryName == name);
   }
 
   parse() {
     let zip = new AdmZip(this.file);
-    this.entries = zip.getEntries().map((entry) => {
-      return entry;
-    });
+    this.entries = zip.getEntries();
 
-    this.#getMimeType();
+    this.#parseStart();
+    this.#parseRootFiles();
 
     // Throws after parsing is completed/attempted
     if (this.isEncrypted) {
       throw new EpubEncryptedError(
-        "Epub is encrypted, parsing will result in unknown behaviour"
+        "Epub is encrypted, parsing has resulted in unknown behaviour"
       );
     }
   }
 
-  #getMimeType() {
+  #parseStart() {
     this.entries.forEach((entry) => {
       if (entry.entryName.toLowerCase() == "meta-inf/container.xml") {
         this.#parseContainer(entry);
       }
       if (entry.entryName.toLowerCase() == "meta-inf/encryption.xml") {
-        this.isEncrypted = true
+        this.isEncrypted = true;
       }
       if (entry.entryName == "mimetype") {
         if (entry.getData().toString("utf8") == "application/epub+zip") {
-          this.meta.mimetype = "application/epub+zip";
+          this.info.mimetype = "application/epub+zip";
         } else {
           throw new IncorrectMimeTypeError(
             "Incorrect mime type may result in unknown behaviour"
@@ -57,7 +63,7 @@ class EPUB {
       }
     });
 
-    if (!this.meta.mimetype)
+    if (!this.info.mimetype)
       throw new NoMimeTypeFileError("No mimetype file found");
   }
 
@@ -72,7 +78,7 @@ class EPUB {
         let path = rfo.rootfile[0].$["full-path"];
 
         if (mime == "application/oebps-package+xml") {
-          this.meta.opf.push(path);
+          this.info.opf.push(path);
         } else {
           throw new IncorrectMimeTypeError(
             "Incorrect mime type in container.xml may result in unknown behaviour"
@@ -82,7 +88,102 @@ class EPUB {
     });
   }
 
-  #parseRootFiles() {}
+  #parseRootFiles() {
+    this.info.opf.forEach((rootfile) => {
+      let opf = this.#getEntry(rootfile);
+      let xml = opf.getData().toString("utf-8");
+
+      parseString(xml, (err, result) => {
+        if (err) throw new Error(err);
+        this.#parseEpubVersion(result.package);
+        this.#parseRootFileMetadata(result.package.metadata[0]);
+
+        if (this.info.isLegacy) {
+          // DO LEGACY guide ELEMENT
+        }
+        // console.dir(result.package.metadata[0]);
+      });
+    });
+  }
+
+  #parseEpubVersion(pkg) {
+    this.info.epubVersion = pkg.$.version;
+    this.info.isLegacy = parseInt(this.info.epubVersion) < 3;
+  }
+
+  #parseRootFileMetadata(metadata) {
+    /**TO PARSE
+     * meta
+     * link
+     * if LEGACY:
+     *  OPF2 meta
+     * dc optionals ( assume dc namespace ):
+     *  contributor
+     *  coverage
+     *  creator
+     *  date
+     *  description
+     *  format
+     *  publisher
+     *  relation
+     *  rights
+     *  source
+     *  subject
+     *  type
+     */
+
+    // ### REQUIRED FIELDS ###
+    // dc:identifier 1 or more
+    this.info.metadata.identifier = [];
+    metadata["dc:identifier"].forEach((tag) => {
+      let dci = {
+        id: tag.$.id,
+        identifier: tag._,
+      };
+      this.info.metadata.identifier.push(dci);
+    });
+
+    if (this.info.metadata.identifier.length == 0) {
+      throw new RequiredEpubMetadataMissing(
+        "Epub is missing dc:identifier metadata"
+      );
+    }
+
+    // dc:title 1 or more, first is primary
+    this.info.metadata.title = {primary: "", additional: []}
+    this.info.metadata.language = { primary: "", additional: [] };
+    for (let i = 0; i < metadata["dc:title"].length; i++) {
+      const language = metadata["dc:title"][i];
+
+      if (i == 0) {
+        this.info.metadata.title.primary = language;
+      } else {
+        this.info.metadata.title.additional.push(language);
+      }
+    }
+
+    // dc:language 1 or more, first is primary
+    this.info.metadata.language = { primary: "", additional: [] };
+    for (let i = 0; i < metadata["dc:language"].length; i++) {
+      const language = metadata["dc:language"][i];
+
+      if (i == 0) {
+        this.info.metadata.language.primary = language;
+      } else {
+        this.info.metadata.language.additional.push(language);
+      }
+    }
+
+    if (metadata["dc:language"].length == 0) {
+      throw new RequiredEpubMetadataMissing(
+        "Epub is missing dc:language metadata"
+      );
+    }
+    // ### REQUIRED FIELDS ###
+  }
+  #parseRootFileManifest() {}
+  #parseRootFileSpine() {}
+  #parseRootFileCollections() {}
 }
 
 module.exports = EPUB;

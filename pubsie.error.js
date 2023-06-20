@@ -19,8 +19,16 @@ class EpubEncryptedError extends Error {
   }
 }
 
+class RequiredEpubMetadataMissing extends Error {
+  constructor(message, options) {
+    super(message, options)
+    this.name = "RequiredEpubMetadataMissing";
+  }
+}
+
 module.exports = {
   IncorrectMimeTypeError: IncorrectMimeTypeError,
   NoMimeTypeFileError: NoMimeTypeFileError,
-  EpubEncryptedError: EpubEncryptedError
+  EpubEncryptedError: EpubEncryptedError,
+  RequiredEpubMetadataMissing: RequiredEpubMetadataMissing,
 };
