@@ -10,9 +10,16 @@ const {
 } = require("./pubsie.error.js");
 
 class EPUB {
-  constructor(file, output) {
+  constructor(file, output, options = {}) {
     this.file = file;
     this.output = output;
+
+    // TODO caching and reading from cache as opposed to fs
+    if (options.cache) {
+      this.cache = options.cache.file
+      this.cacheOut = options.cache.output
+    }
+
     this.#infoInit();
   }
 
@@ -113,23 +120,9 @@ class EPUB {
 
   #parseRootFileMetadata(metadata) {
     /**TO PARSE
-     * meta
      * link
      * if LEGACY:
      *  OPF2 meta
-     * dc optionals ( assume dc namespace ):
-     *  contributor
-     *  coverage
-     *  creator
-     *  date
-     *  description
-     *  format
-     *  publisher
-     *  relation
-     *  rights
-     *  source
-     *  subject
-     *  type
      */
 
     // ### REQUIRED FIELDS ###
@@ -150,16 +143,21 @@ class EPUB {
     }
 
     // dc:title 1 or more, first is primary
-    this.info.metadata.title = {primary: "", additional: []}
-    this.info.metadata.language = { primary: "", additional: [] };
+    this.info.metadata.title = { primary: "", additional: [] };
     for (let i = 0; i < metadata["dc:title"].length; i++) {
-      const language = metadata["dc:title"][i];
+      const title = metadata["dc:title"][i];
 
       if (i == 0) {
-        this.info.metadata.title.primary = language;
+        this.info.metadata.title.primary = title;
       } else {
-        this.info.metadata.title.additional.push(language);
+        this.info.metadata.title.additional.push(title);
       }
+    }
+
+    if (metadata["dc:title"].length == 0) {
+      throw new RequiredEpubMetadataMissing(
+        "Epub is missing dc:title metadata"
+      );
     }
 
     // dc:language 1 or more, first is primary
@@ -179,8 +177,52 @@ class EPUB {
         "Epub is missing dc:language metadata"
       );
     }
+
+    // meta 1 or more. This tag is only parsed for its dcterms:modified property.
+    this.info.metadata.unparsed.meta = []; // If users want to parse the meta tags themselves.
+    metadata["meta"].forEach((meta) => {
+      if (meta.$.property == "dcterms:modified") {
+        this.info.metadata.dcterms_modified = meta._;
+      }
+      this.info.metadata.unparsed.meta.push(meta);
+    });
+
+    if (!this.info.metadata.dcterms_modified) {
+      throw new RequiredEpubMetadataMissing(
+        "Epub is missing dcterms_modified (last modified date) metadata"
+      );
+    }
     // ### REQUIRED FIELDS ###
+
+    // ### OPTIONAL FIELDS ###
+    this.#parseRootFileMetadataDcOptionals(metadata);
+    
+    // link 0 or more. This tag is not parsed for information, but users can feel free to parse them themselves
+    this.info.metadata.unparsed.link = []
+    metadata["link"].forEach(link => {
+      this.info.metadata.unparsed.link.push(link)
+    })
+    // ### OPTIONAL FIELDS ###
   }
+
+  #parseRootFileMetadataDcOptionals(metadata) {
+    /**
+     * dc optionals ( assume dc namespace ):
+     *  contributor
+     *  coverage
+     *  creator
+     *  date
+     *  description
+     *  format
+     *  publisher
+     *  relation
+     *  rights
+     *  source
+     *  subject
+     *  type
+     */
+  }
+
   #parseRootFileManifest() {}
   #parseRootFileSpine() {}
   #parseRootFileCollections() {}

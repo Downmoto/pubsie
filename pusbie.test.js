@@ -54,4 +54,10 @@ describe("parseRootFileMetadata", () => {
 
     expect(n.info.metadata.title).toStrictEqual(e);
   });
+
+  test('should have correct last modified date', () => { 
+    let e = "2023-06-02T08:47:25Z";
+
+    expect(n.info.metadata.dcterms_modified).toBe(e)
+   })
 });
