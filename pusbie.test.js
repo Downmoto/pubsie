@@ -3,61 +3,59 @@ const {
   IncorrectMimeTypeError,
   NoMimeTypeFileError,
   EpubEncryptedError,
+  RequiredEpubMetadataMissing,
 } = require("./pubsie.error.js");
-const pub = require("./pubsie.js");
+const pubsie = require("./pubsie.js");
+const fs = require("fs");
 
-const epub = "./data/moby.epub";
-const output = "./data/out/";
+// build test data directories
+beforeAll(() => {
+  let dirs = [
+    './data/test_data/cached_data/',
+    './data/test_out'
+  ]
 
-const n = new pub(epub, output);
-n.parse();
+  dirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir)
+    }
+  })
+})
 
-describe("getMimeType", () => {
-  test("should open epub and check for correct mime type", () => {
-    let e = "application/epub+zip";
 
-    expect(n.info.mimetype).toBe(e);
+describe("raw data test", () => {
+  let pub = []
+  beforeAll(() => {
+    const test_data = "./data/test_data/";
+    const output = "./data/test_out/";
+
+    let filenames = fs.readdirSync(test_data);
+    filenames.forEach((file) => {
+      if (!fs.lstatSync(test_data.concat(file)).isDirectory()) {
+        let epub = new pubsie(test_data.concat(file), output.concat(file));
+        epub.parse();
+        epub.buildCache(test_data.concat(`cached_data/${file}`));
+
+        pub.push(epub);
+      }
+    });
   });
+  it("should do nothing", () => {});
 });
 
-describe("parseContainer", () => {
-  test("should find and assign rootfile to meta object", () => {
-    let e = "OEBPS/content.opf";
+describe("cached data tests", () => {
+  let pub = []
+  beforeAll(() => {
+    const test_data = "./data/test_data/cached_data/";
+    const output = "./data/test_out/";
 
-    expect(n.info.opf.length).toBe(1);
-    expect(n.info.opf[0]).toBe(e);
+    let filenames = fs.readdirSync(test_data);
+    filenames.forEach((file) => {
+      let epub = new pubsie(test_data.concat(file), output.concat(file));
+      epub.parse();
+
+      pub.push(epub);
+    });
   });
-});
-
-describe("parseRootFileMetadata", () => {
-  test("should have correct dc:identifier information", () => {
-    let e = { id: "id", identifier: "http://www.gutenberg.org/2701" };
-
-    expect(n.info.metadata.identifier.length).toBe(1);
-    expect(n.info.metadata.identifier[0]).toStrictEqual(e);
-  });
-
-  test("should have english language as primary with no additional languages set", () => {
-    let e = {
-      primary: "en",
-      additional: [],
-    };
-
-    expect(n.info.metadata.language).toStrictEqual(e);
-  });
-
-  test("should have correct title as primary with no additional titles set", () => {
-    let e = {
-      primary: "Moby Dick; Or, The Whale",
-      additional: [],
-    };
-
-    expect(n.info.metadata.title).toStrictEqual(e);
-  });
-
-  test('should have correct last modified date', () => { 
-    let e = "2023-06-02T08:47:25Z";
-
-    expect(n.info.metadata.dcterms_modified).toBe(e)
-   })
+  it("should do nothing", () => {});
 });

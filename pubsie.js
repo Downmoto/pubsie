@@ -18,9 +18,7 @@ class EPUB {
     this.output = output;
 
     // TODO caching and reading from cache as opposed to fs
-    if (
-      this.file.split(".").filter(Boolean).slice(1).join(".") == "cache.json"
-    ) {
+    if (this.file.endsWith("cache.json")) {
       this.#isCache = true;
     }
 
@@ -50,6 +48,8 @@ class EPUB {
       let raw = fs.readFileSync(this.file);
       let data = JSON.parse(raw);
       this.entries = data.entries;
+      this.info = data.info
+      return
     }
 
     this.#parseStart();
@@ -63,7 +63,7 @@ class EPUB {
     }
   }
 
-  buildCache() {
+  buildCache(out) {
     let cache = {
       info: this.info,
       entries: this.entries,
@@ -71,10 +71,12 @@ class EPUB {
 
     let data = JSON.stringify(cache);
 
-    if (!this.output.endsWith(".cache.json")) {
-      this.output = this.output.concat(".cache.json");
+    let o = out ? out : this.output;
+    if (!o.endsWith(".cache.json")) {
+      o = o.concat(".cache.json");
     }
-    fs.writeFileSync(this.output, data);
+
+    fs.writeFileSync(o, data);
   }
 
   #parseStart() {
@@ -204,7 +206,7 @@ class EPUB {
       this.info.metadata.unparsed.meta.push(meta);
     });
 
-    if (!this.info.metadata.dcterms_modified) {
+    if (!this.info.metadata.dcterms_modified && !this.info.isLegacy) {
       throw new RequiredEpubMetadataMissing(
         "Epub is missing dcterms_modified (last modified date) metadata"
       );
