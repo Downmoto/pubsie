@@ -1,6 +1,8 @@
 var AdmZip = require("adm-zip");
 var parseString = require("xml2js").parseString;
 
+const fs = require("fs");
+
 // Custom Error Names for ease of handling
 const {
   IncorrectMimeTypeError,
@@ -10,14 +12,16 @@ const {
 } = require("./pubsie.error.js");
 
 class EPUB {
-  constructor(file, output, options = {}) {
+  #isCache = false;
+  constructor(file, output) {
     this.file = file;
     this.output = output;
 
     // TODO caching and reading from cache as opposed to fs
-    if (options.cache) {
-      this.cache = options.cache.file
-      this.cacheOut = options.cache.output
+    if (
+      this.file.split(".").filter(Boolean).slice(1).join(".") == "cache.json"
+    ) {
+      this.#isCache = true;
     }
 
     this.#infoInit();
@@ -28,7 +32,9 @@ class EPUB {
       mimetype: "",
       opf: [], // .opf files [content.opf]
       epubVersion: "", // 3+ recommended, legacy features will not be maintained
-      metadata: {},
+      metadata: {
+        unparsed: {},
+      },
     };
   }
 
@@ -37,8 +43,14 @@ class EPUB {
   }
 
   parse() {
-    let zip = new AdmZip(this.file);
-    this.entries = zip.getEntries();
+    if (!this.#isCache) {
+      let zip = new AdmZip(this.file);
+      this.entries = zip.getEntries();
+    } else {
+      let raw = fs.readFileSync(this.file);
+      let data = JSON.parse(raw);
+      this.entries = data.entries;
+    }
 
     this.#parseStart();
     this.#parseRootFiles();
@@ -49,6 +61,20 @@ class EPUB {
         "Epub is encrypted, parsing has resulted in unknown behaviour"
       );
     }
+  }
+
+  buildCache() {
+    let cache = {
+      info: this.info,
+      entries: this.entries,
+    };
+
+    let data = JSON.stringify(cache);
+
+    if (!this.output.endsWith(".cache.json")) {
+      this.output = this.output.concat(".cache.json");
+    }
+    fs.writeFileSync(this.output, data);
   }
 
   #parseStart() {
@@ -196,12 +222,15 @@ class EPUB {
 
     // ### OPTIONAL FIELDS ###
     this.#parseRootFileMetadataDcOptionals(metadata);
-    
+
     // link 0 or more. This tag is not parsed for information, but users can feel free to parse them themselves
-    this.info.metadata.unparsed.link = []
-    metadata["link"].forEach(link => {
-      this.info.metadata.unparsed.link.push(link)
-    })
+    if (metadata["link"]) {
+      this.info.metadata.unparsed.link = [];
+      metadata["link"].forEach((link) => {
+        this.info.metadata.unparsed.link.push(link);
+      });
+    }
+
     // ### OPTIONAL FIELDS ###
   }
 
