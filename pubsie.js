@@ -55,7 +55,7 @@ class EPUB {
     this.#parseStart();
     this.#parseRootFiles();
 
-    // Throws after parsing is completed/attempted
+    // MOVE TO PARSESTART METHOD
     if (this.isEncrypted) {
       throw new EpubEncryptedError(
         "Epub is encrypted, parsing has resulted in unknown behaviour"
@@ -131,9 +131,6 @@ class EPUB {
         this.#parseEpubVersion(result.package);
         this.#parseRootFileMetadata(result.package.metadata[0]);
 
-        if (this.info.isLegacy) {
-          // DO LEGACY guide ELEMENT
-        }
         // console.dir(result.package.metadata[0]);
       });
     });
@@ -145,12 +142,6 @@ class EPUB {
   }
 
   #parseRootFileMetadata(metadata) {
-    /**TO PARSE
-     * link
-     * if LEGACY:
-     *  OPF2 meta
-     */
-
     // ### REQUIRED FIELDS ###
     // dc:identifier 1 or more
     this.info.metadata.identifier = [];
