@@ -3,8 +3,8 @@ const {
   IncorrectMimeTypeError,
   NoMimeTypeFileError,
   EpubEncryptedError,
-  RequiredEpubMetadataMissing,
-} = require("./helpers/errors/pubsie.error.js");
+  RequiredEpubMetadataMissingError,
+} = require("./helpers/errors");
 const pubsie = require("./pubsie.js");
 const fs = require("fs");
 

@@ -1,24 +1,20 @@
-// "contributor",
-//   "creator",
-//   "coverage",
-//   "date",
-//   "description",
-//   "format",
-//   "publisher",
-//   "relation",
-//   "rights",
-//   "source",
-//   "subject",
-//   "type";
-
 function parseRootFileOptionalMetadata(metadata, options) {
   return {
-    unparsed: {
-      link: parseLink(metadata["link"]),
-    },
     creator: parseContributor(metadata["dc:creator"]),
     contributor: parseContributor(metadata["dc:contributor"]),
     date: parseDate(metadata["dc:date"], options.isLegacy),
+    subject: parseSubject(metadata["dc:subject"]),
+    type: parseType(metadata["dc:type"]),
+    coverage: parseRemainingOptionals(metadata["dc:coverage"], "coverage"),
+    desc: parseRemainingOptionals(metadata["dc:description"], "description"),
+    source: parseRemainingOptionals(metadata["dc:source"], "source"),
+    format: parseRemainingOptionals(metadata["dc:format"], "format"),
+    publisher: parseRemainingOptionals(metadata["dc:publisher"], "publisher"),
+    relation: parseRemainingOptionals(metadata["dc:relation"], "relation"),
+    rights: parseRemainingOptionals(metadata["dc:rights"], "rights"),
+    unparsed: {
+      link: parseLink(metadata["link"]),
+    },
   };
 }
 
@@ -43,16 +39,56 @@ function parseContributor(metadata) {
 }
 
 function parseDate(metadata, isLegacy) {
-  let e = []
+  let e = [];
   if (metadata) {
-    metadata.forEach(date => {
-      e.push(isLegacy ? date._ : date)
-    })
+    metadata.forEach((date) => {
+      e.push(isLegacy ? date._ : date);
+    });
   }
-  console.log(e)
   return e;
 }
 
-module.exports = {
-  parseRootFileOptionalMetadata,
-};
+function parseSubject(metadata) {
+  let e = [];
+  if (metadata) {
+    metadata.forEach((subject) => {
+      let s = subject;
+      if (s.$) {
+        s = {
+          id: subject.$.id,
+          subject: subject._,
+        };
+      }
+      e.push(s);
+    });
+  }
+
+  return e;
+}
+
+function parseType(metadata) {
+  if (metadata) {
+    return metadata;
+  }
+}
+
+function parseRemainingOptionals(metadata, key) {
+  let e = [];
+  if (metadata) {
+    metadata.forEach((n) => {
+      let x = n;
+      if (x.$) {
+        x = {
+          dir: title.$.dir,
+          id: title.$.id,
+          "xml:lang": title.$["xml:lang"],
+        };
+        x[key] = n._;
+      }
+      e.push(x);
+    });
+  }
+  return e;
+}
+
+module.exports = parseRootFileOptionalMetadata;
