@@ -4,27 +4,23 @@ const {
   NoMimeTypeFileError,
   EpubEncryptedError,
   RequiredEpubMetadataMissing,
-} = require("./pubsie.error.js");
+} = require("./helpers/errors/pubsie.error.js");
 const pubsie = require("./pubsie.js");
 const fs = require("fs");
 
 // build test data directories
 beforeAll(() => {
-  let dirs = [
-    './data/test_data/cached_data/',
-    './data/test_out'
-  ]
+  let dirs = ["./data/test_data/cached_data/", "./data/test_out"];
 
-  dirs.forEach(dir => {
+  dirs.forEach((dir) => {
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir)
+      fs.mkdirSync(dir);
     }
-  })
-})
-
+  });
+});
 
 describe("raw data test", () => {
-  let pub = []
+  let pub = [];
   beforeAll(() => {
     const test_data = "./data/test_data/";
     const output = "./data/test_out/";
@@ -44,7 +40,7 @@ describe("raw data test", () => {
 });
 
 describe("cached data tests", () => {
-  let pub = []
+  let pub = [];
   beforeAll(() => {
     const test_data = "./data/test_data/cached_data/";
     const output = "./data/test_out/";
