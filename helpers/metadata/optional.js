@@ -12,6 +12,7 @@ function parseRootFileOptionalMetadata(metadata, options) {
     publisher: parseRemainingOptionals(metadata["dc:publisher"], "publisher"),
     relation: parseRemainingOptionals(metadata["dc:relation"], "relation"),
     rights: parseRemainingOptionals(metadata["dc:rights"], "rights"),
+    meta: parseMeta(metadata["meta"]),
     unparsed: {
       link: parseLink(metadata["link"]),
     },
@@ -32,7 +33,7 @@ function parseContributor(metadata) {
   let e = [];
   if (metadata) {
     metadata.forEach((c) => {
-      e.push(c._);
+      e.push({name: c._, attrs: c.$});
     });
     return e;
   }
@@ -79,15 +80,24 @@ function parseRemainingOptionals(metadata, key) {
       let x = n;
       if (x.$) {
         x = {
-          dir: title.$.dir,
-          id: title.$.id,
-          "xml:lang": title.$["xml:lang"],
+          dir: n.$.dir,
+          id: n.$.id,
+          "xml:lang": n.$["xml:lang"],
         };
         x[key] = n._;
       }
       e.push(x);
     });
   }
+  return e;
+}
+
+function parseMeta(metadata) {
+  let e = {};
+  metadata.forEach((meta) => {
+    console.log(meta._)
+    e[`${meta._ ?? meta.$.property ?? meta.$.name}`] = meta.$;
+  });
   return e;
 }
 

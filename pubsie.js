@@ -28,13 +28,13 @@ class EPUB {
     }
 
     let endsWithAny = (acc, str) => {
-      return acc.some(ext => {
-        return str.endsWith(ext)
-      })
-    }
+      return acc.some((ext) => {
+        return str.endsWith(ext);
+      });
+    };
 
     if (!endsWithAny(acceptedExt, file)) {
-      throw new Error('Incorrect file type')
+      throw new Error("Incorrect file type");
     }
 
     this.#infoInit();

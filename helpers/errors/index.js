@@ -4,8 +4,8 @@ const NoMimeTypeFileError = require("./NoMimeTypeFile.js");
 const EpubEncryptedError = require("./EpubEncrypted.js");
 
 module.exports = {
-    RequiredEpubMetadataMissingError,
-    IncorrectMimeTypeError,
-    NoMimeTypeFileError,
-    EpubEncryptedError
-}
+  RequiredEpubMetadataMissingError,
+  IncorrectMimeTypeError,
+  NoMimeTypeFileError,
+  EpubEncryptedError,
+};

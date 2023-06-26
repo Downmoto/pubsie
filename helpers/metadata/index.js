@@ -4,5 +4,5 @@ const parseRootFileRequiredMetadata = require('./required.js')
 
 module.exports = {
     parseRootFileOptionalMetadata,
-    parseRootFileRequiredMetadata
+    parseRootFileRequiredMetadata,
 }
