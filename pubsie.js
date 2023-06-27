@@ -21,7 +21,7 @@ class EPUB {
     this.file = file;
     this.output = output;
 
-    let acceptedExt = ["epub", "cache.json"];
+    const acceptedExt = ["epub", "cache.json"];
 
     if (this.file.endsWith(acceptedExt[1])) {
       this.#isCache = true;
@@ -161,25 +161,6 @@ class EPUB {
         );
       });
     }
-
-    this.epub.opf.forEach((rootfile) => {
-      let opf = this.#getEntry(rootfile);
-      let xml = opf.getData().toString("utf-8");
-
-      parseString(xml, (err, result) => {
-        if (err) throw new Error(err);
-        this.#parseEpubVersion(result.package);
-        this.epub.metadata = parseRootFileRequiredMetadata(
-          result.package.metadata[0],
-          { isLegacy: this.epub.isLegacy }
-        );
-
-        this.epub.metadata.optionals = parseRootFileOptionalMetadata(
-          result.package.metadata[0],
-          { isLegacy: this.epub.isLegacy }
-        );
-      });
-    });
   }
 
   #parseEpubVersion(pkg) {

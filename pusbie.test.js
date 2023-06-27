@@ -19,39 +19,38 @@ beforeAll(() => {
   });
 });
 
+function pre(test_data, pub) {
+  const output = "./data/test_out/";
+
+  let filenames = fs.readdirSync(test_data);
+  filenames.forEach((file) => {
+    if (!fs.lstatSync(test_data.concat(file)).isDirectory()) {
+      let epub = new pubsie(test_data.concat(file), output.concat(file));
+      epub.parse();
+      if (!test_data.endsWith("cached_data/"))
+        epub.buildCache(test_data.concat(`cached_data/${file}`));
+
+      pub.push(epub);
+    }
+  });
+}
+
+
+// #### TESTS ####
 describe("raw data test", () => {
   let pub = [];
   beforeAll(() => {
-    const test_data = "./data/test_data/";
-    const output = "./data/test_out/";
-
-    let filenames = fs.readdirSync(test_data);
-    filenames.forEach((file) => {
-      if (!fs.lstatSync(test_data.concat(file)).isDirectory()) {
-        let epub = new pubsie(test_data.concat(file), output.concat(file));
-        epub.parse();
-        epub.buildCache(test_data.concat(`cached_data/${file}`));
-
-        pub.push(epub);
-      }
-    });
+    pre("./data/test_data/", pub);
   });
+
   it("should do nothing", () => {});
 });
 
 describe("cached data tests", () => {
   let pub = [];
   beforeAll(() => {
-    const test_data = "./data/test_data/cached_data/";
-    const output = "./data/test_out/";
-
-    let filenames = fs.readdirSync(test_data);
-    filenames.forEach((file) => {
-      let epub = new pubsie(test_data.concat(file), output.concat(file));
-      epub.parse();
-
-      pub.push(epub);
-    });
+    pre("./data/test_data/cached_data/", pub);
   });
+
   it("should do nothing", () => {});
 });

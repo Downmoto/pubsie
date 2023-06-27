@@ -19,6 +19,7 @@ function parseRootFileOptionalMetadata(metadata, options) {
   };
 }
 
+// possible TODO: parse links
 function parseLink(metadata) {
   let e = [];
   if (metadata) {
@@ -33,7 +34,7 @@ function parseContributor(metadata) {
   let e = [];
   if (metadata) {
     metadata.forEach((c) => {
-      e.push({name: c._, attrs: c.$});
+      e.push({ name: c._, attrs: c.$ });
     });
     return e;
   }
@@ -43,7 +44,7 @@ function parseDate(metadata, isLegacy) {
   let e = [];
   if (metadata) {
     metadata.forEach((date) => {
-      e.push(isLegacy ? date._ : date);
+      e.push(isLegacy ? { date: date._, event: date.$["opf:event"] } : date);
     });
   }
   return e;
@@ -95,7 +96,6 @@ function parseRemainingOptionals(metadata, key) {
 function parseMeta(metadata) {
   let e = {};
   metadata.forEach((meta) => {
-    console.log(meta._)
     e[`${meta._ ?? meta.$.property ?? meta.$.name}`] = meta.$;
   });
   return e;
