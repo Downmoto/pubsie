@@ -4,7 +4,8 @@
   "description": "epub parser",
   "main": "pubsie.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build-test": "node tests/build/build.js"
   },
   "keywords": [
     "epub"
