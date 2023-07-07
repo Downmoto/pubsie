@@ -1,11 +1,12 @@
 {
   "name": "pubsie",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "epub parser",
   "main": "pubsie.js",
   "scripts": {
     "test": "jest",
-    "build-test": "node tests/build/build.js"
+    "build-test": "node tests/setupAndTeardown/setup.js",
+    "clean-test": "node tests/setupAndTeardown/teardown.js"
   },
   "keywords": [
     "epub"
