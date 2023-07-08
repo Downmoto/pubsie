@@ -23,6 +23,11 @@ function buildCache() {
     epub.parse();
     epub.buildCache(SETUP_OUT_DIRECTORY.concat(`cached_data/${file}`));
   });
+
+  // build dirty cache
+  let dirty = new pubsie(SETUP_DATA_FILEPATH + SETUP_BASE_FILEPATH);
+  dirty.parse();
+  dirty.buildCache(SETUP_OUT_DIRECTORY.concat("cached_data/dirty.epub"));
 }
 
 function buildDirectories() {
