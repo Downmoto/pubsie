@@ -11,7 +11,7 @@
   ],
   "jest": {
     "globals": {
-      "TEARDOWN": true
+      "TEARDOWN": false
     },
     "verbose": true,
     "globalSetup": "<rootDir>/tests/global/setup.js",
