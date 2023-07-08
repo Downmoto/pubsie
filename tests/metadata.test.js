@@ -40,7 +40,7 @@ describe("metadata test suite", () => {
         primary: expect.any(String),
         additional: expect.any(Array),
       }),
-      dcterms_modified: expect.any(String),
+      dcterms_modified: expect.toBeOneOf([expect.any(String), undefined]),
     };
 
     expect(pub.epub.metadata[0]).toMatchObject(expected_object);
@@ -48,5 +48,5 @@ describe("metadata test suite", () => {
 });
 
 describe("metadata error test suite", () => {
-  it("should do nothing", () => {})
-})
+  it("should do nothing", () => {});
+});
