@@ -21,6 +21,10 @@ class EPUB {
     this.file = file;
     this.output = output;
 
+    if (!this.file) {
+      throw new Error("pusbsie requires file arg")
+    }
+
     const acceptedExt = ["epub", "cache.json"];
 
     if (this.file.endsWith(acceptedExt[1])) {

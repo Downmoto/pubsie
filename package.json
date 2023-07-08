@@ -13,6 +13,7 @@
     "globals": {
       "TEARDOWN": true
     },
+    "verbose": true,
     "globalSetup": "<rootDir>/tests/global/setup.js",
     "globalTeardown": "<rootDir>/tests/global/teardown.js"
   },
