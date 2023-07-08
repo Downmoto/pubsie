@@ -22,7 +22,7 @@ class EPUB {
     this.output = output;
 
     if (!this.file) {
-      throw new Error("pusbsie requires file arg")
+      throw new Error("pusbsie requires file arg");
     }
 
     const acceptedExt = ["epub", "cache.json"];
@@ -153,16 +153,9 @@ class EPUB {
 
       parseString(xml, (err, result) => {
         if (err) throw new Error(err);
-        this.#parseEpubVersion(result.package);
-        this.epub.metadata[i] = parseRootFileRequiredMetadata(
-          result.package.metadata[0],
-          { isLegacy: this.epub.isLegacy }
-        );
 
-        this.epub.metadata[i].optional = parseRootFileOptionalMetadata(
-          result.package.metadata[0],
-          { isLegacy: this.epub.isLegacy }
-        );
+        this.#parseEpubVersion(result.package);
+        this.#parseRootFileMetadata(i, result.package.metadata[i]);
       });
     }
   }
@@ -170,6 +163,17 @@ class EPUB {
   #parseEpubVersion(pkg) {
     this.epub.epubVersion = pkg.$.version;
     this.epub.isLegacy = parseInt(this.epub.epubVersion) < 3;
+  }
+
+  #parseRootFileMetadata(index, metadata) {
+    this.epub.metadata[index] = parseRootFileRequiredMetadata(metadata, {
+      isLegacy: this.epub.isLegacy,
+    });
+
+    this.epub.metadata[index].optional = parseRootFileOptionalMetadata(
+      metadata,
+      { isLegacy: this.epub.isLegacy }
+    );
   }
 
   #parseRootFileManifest() {}
