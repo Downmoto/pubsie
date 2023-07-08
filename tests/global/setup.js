@@ -25,7 +25,7 @@ function buildCache() {
   });
 
   // build dirty cache
-  let dirty = new pubsie(SETUP_DATA_FILEPATH + SETUP_BASE_FILEPATH);
+  let dirty = new pubsie(SETUP_OUT_DIRECTORY + SETUP_BASE_FILEPATH);
   dirty.parse();
   dirty.buildCache(SETUP_OUT_DIRECTORY.concat("cached_data/dirty.epub"));
 }
@@ -45,7 +45,6 @@ function buildDirectories() {
 
 module.exports = function (globalConfig, projectConfig) {
   buildDirectories();
-  buildCache();
 
   const zip = new AdmZip(SETUP_DATA_FILEPATH + SETUP_BASE_FILEPATH);
 
@@ -76,7 +75,8 @@ module.exports = function (globalConfig, projectConfig) {
     );
 
     zip.writeZip(SETUP_OUT_DIRECTORY + SETUP_BASE_FILEPATH);
-
-    console.log("\n### Setup complete ###");
   });
+
+  buildCache();
+  console.log("\n### Setup complete ###");
 };
