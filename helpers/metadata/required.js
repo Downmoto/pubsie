@@ -21,7 +21,7 @@ function parseIdentifier(metadata) {
     });
   }
 
-  if (e.length == 0 || !metadata) {
+  if (e.length == 0) {
     throw new RequiredEpubMetadataMissingError(
       "Epub is missing dc:identifier metadata"
     );
@@ -46,7 +46,7 @@ function parseTitle(metadata) {
     if (i == 0) {
       e.primary = title;
     } else {
-      e.push(title);
+      e.additional.push(title);
     }
   }
 
