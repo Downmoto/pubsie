@@ -11,15 +11,17 @@ function parseRootFileRequiredMetadata(metadata, options) {
 
 function parseIdentifier(metadata) {
   let e = [];
-  metadata.forEach((tag) => {
-    let dci = {
-      id: tag.$.id,
-      identifier: tag._,
-    };
-    e.push(dci);
-  });
+  if (metadata) {
+    metadata.forEach((tag) => {
+      let dci = {
+        id: tag.$.id,
+        identifier: tag._,
+      };
+      e.push(dci);
+    });
+  }
 
-  if (e == 0) {
+  if (e.length == 0 || !metadata) {
     throw new RequiredEpubMetadataMissingError(
       "Epub is missing dc:identifier metadata"
     );
@@ -37,8 +39,8 @@ function parseTitle(metadata) {
         title: title._,
         dir: title.$.dir,
         id: title.$.id,
-        'xml:lang': title.$['xml:lang']
-      }
+        "xml:lang": title.$["xml:lang"],
+      };
     }
 
     if (i == 0) {
@@ -81,17 +83,20 @@ function parseLanguage(metadata, isLegacy) {
 
 function ParseDctermsModified(metadata, isLegacy) {
   let e;
-  metadata.forEach((meta) => {
-    if (meta.$.property == "dcterms:modified") {
-      e = meta._;
-    }
-  });
+  if (metadata) {
+    metadata.forEach((meta) => {
+      if (meta.$.property == "dcterms:modified") {
+        e = meta._;
+      }
+    });
+  }
 
   if (!e && !isLegacy) {
     throw new RequiredEpubMetadataMissingError(
       "Epub is missing dcterms_modified (last modified date) metadata"
     );
   }
+  
   return e;
 }
 
