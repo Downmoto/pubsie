@@ -17,17 +17,11 @@ function buildCache() {
   filenames.forEach((file) => {
     let epub = new pubsie(
       SETUP_DATA_FILEPATH.concat(file),
-      SETUP_OUT_DIRECTORY
     );
 
     epub.parse();
-    epub.buildCache(SETUP_OUT_DIRECTORY.concat(`cached_data/${file}`));
+    epub.buildCache(SETUP_OUT_DIRECTORY.concat(`cached_data/`));
   });
-
-  // build dirty cache
-  let dirty = new pubsie(SETUP_OUT_DIRECTORY + SETUP_BASE_FILEPATH);
-  dirty.parse();
-  dirty.buildCache(SETUP_OUT_DIRECTORY.concat("cached_data/dirty.epub"));
 }
 
 function buildDirectories() {
@@ -74,7 +68,7 @@ module.exports = function (globalConfig, projectConfig) {
       "utf8"
     );
 
-    zip.writeZip(SETUP_OUT_DIRECTORY + SETUP_BASE_FILEPATH);
+    zip.writeZip(SETUP_OUT_DIRECTORY + "DIRTY.epub");
   });
 
   buildCache();
