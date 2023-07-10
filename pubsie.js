@@ -2,6 +2,7 @@ var AdmZip = require("adm-zip");
 var parseString = require("xml2js").parseString;
 
 const fs = require("fs");
+const path = require('path')
 
 // Custom Error Names for ease of handling
 const {
@@ -15,14 +16,13 @@ const {
   parseRootFileOptionalMetadata,
 } = require("./helpers/metadata");
 
-class EPUB {
+class Pubsie {
   #isCache = false;
-  constructor(file, output) {
+  constructor(file) {
     this.file = file;
-    this.output = output;
 
     if (!this.file) {
-      throw new Error("pusbsie requires file arg");
+      throw new Error("pubsie requires file arg");
     }
 
     const acceptedExt = ["epub", "cache.json"];
@@ -65,7 +65,7 @@ class EPUB {
       let raw = fs.readFileSync(this.file);
       let data = JSON.parse(raw);
       this.entries = data.entries;
-      this.epub = data.info;
+      this.epub = data.epub;
       return;
     }
 
@@ -87,13 +87,14 @@ class EPUB {
     });
 
     let cache = {
-      info: this.epub,
+      location: this.file,
+      epub: this.epub,
       entries: filtered,
     };
 
     let data = JSON.stringify(cache);
 
-    let o = out ? out : this.output;
+    let o = out + path.basename(this.file);
     if (!o.endsWith(".cache.json")) o = o.concat(".cache.json");
 
     fs.writeFileSync(o, data);
@@ -181,4 +182,4 @@ class EPUB {
   #parseRootFileCollections() {}
 }
 
-module.exports = EPUB;
+module.exports = Pubsie;
