@@ -89,7 +89,7 @@ class Pubsie extends EventEmitter {
       opf: [], // .opf files [content.opf]
       epubVersion: "", // 3+ recommended, legacy features will not be maintained
       metadata: [],
-      manifest: [],
+      manifest: {},
     };
   }
 
@@ -285,7 +285,7 @@ class Pubsie extends EventEmitter {
   }
 
   #validateManifest(index) {
-    let m = this.epub.manifest[index];
+    let m = this.epub.manifest[index].items;
 
     if (m.length == 0) {
       this.emit(

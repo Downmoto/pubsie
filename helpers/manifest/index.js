@@ -1,13 +1,16 @@
 function parseRootFileManifest(manifest) {
   const items = manifest.item;
 
-  let e = [];
+  let obj = {
+    id: (manifest.$ === undefined) ? undefined : manifest.$.id,
+    items: []
+  };
 
   if (items) {
     for (let i = 0; i < items.length; i++) {
       const item = items[i].$;
 
-      e.push({
+      obj.items.push({
         fallback: item["fallback"],
         href: item["href"],
         id: item["id"],
@@ -18,7 +21,8 @@ function parseRootFileManifest(manifest) {
     }
   }
 
-  return e;
+
+  return obj;
 }
 
 module.exports = { parseRootFileManifest };

@@ -7,7 +7,9 @@ describe("manifest test cases", () => {
     pub.parse();
 
     let randomIndex =
-      pub.epub.manifest[0][~~(Math.random() * pub.epub.manifest[0].length)];
+      pub.epub.manifest[0].items[
+        ~~(Math.random() * pub.epub.manifest[0].length)
+      ];
 
     let expected_objects = {
       fallback: expect.toBeOneOf([expect.any(String), undefined]),
