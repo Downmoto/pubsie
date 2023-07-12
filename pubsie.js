@@ -1,3 +1,30 @@
+/**
+ * Pubsie package
+ * @author Arad Fadaei
+ * @see https://github.com/Downmoto/pubsie
+ *
+ * @license
+ * Copyright (c) 2023 Arad Fadaei.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 // External dependencies
 var AdmZip = require("adm-zip");
 var parseString = require("xml2js").parseString;
@@ -13,6 +40,8 @@ const {
   NoMimeTypeFileError,
   EpubEncryptedError,
   RequiredEpubMetadataMissingError,
+  EmptyManifestError,
+  NoNcxError,
 } = require("./helpers/errors");
 
 // Metadata parser helpers
@@ -21,12 +50,13 @@ const {
   parseRootFileOptionalMetadata,
 } = require("./helpers/metadata");
 
+const { parseRootFileManifest } = require("./helpers/manifest");
+
 /**
- * Pubsie parses .epub files. Extends eventEmitter
- * @constructor
- * 
+ * Pubsie parses `.epub` files. Extends `EventEmitter`
+ *
  * @param {String} file path to .epub or .cache.json
- * @emits error -- check documentation on github
+ * @emits `error` check documentation on github for full list
  */
 class Pubsie extends EventEmitter {
   #isCache = false;
@@ -59,6 +89,7 @@ class Pubsie extends EventEmitter {
       opf: [], // .opf files [content.opf]
       epubVersion: "", // 3+ recommended, legacy features will not be maintained
       metadata: [],
+      manifest: [],
     };
   }
 
@@ -89,20 +120,24 @@ class Pubsie extends EventEmitter {
   /**
    * Builds cache of epub.
    * @param {String} out write path, appends .cache.json.
+   * @param {Boolean} noEntries defaults to `false`. Set to `true` to disable caching entries
    */
-  buildCache(out) {
+  buildCache(out, noEntries = false) {
     const keys = ["entryName", "name", "isDirectory"];
+    let filtered;
 
     // filters entries to key data
-    const filtered = this.entries.map((entry) => {
-      const f = {};
-      keys.forEach((key) => {
-        if (entry.hasOwnProperty(key)) {
-          f[key] = entry[key];
-        }
+    if (!noEntries) {
+      filtered = this.entries.map((entry) => {
+        const f = {};
+        keys.forEach((key) => {
+          if (entry.hasOwnProperty(key)) {
+            f[key] = entry[key];
+          }
+        });
+        return f;
       });
-      return f;
-    });
+    }
 
     let cache = {
       location: this.file,
@@ -177,7 +212,12 @@ class Pubsie extends EventEmitter {
         if (err) throw new Error(err);
 
         this.#parseEpubVersion(result.package);
+
         this.#parseRootFileMetadata(i, result.package.metadata[i]);
+        this.#validateRequiredMetadata(i);
+
+        this.#parseRootFileManifest(i, result.package.manifest[i]);
+        this.#validateManifest(i);
       });
     }
   }
@@ -191,8 +231,6 @@ class Pubsie extends EventEmitter {
     this.epub.metadata[index] = parseRootFileRequiredMetadata(metadata, {
       isLegacy: this.epub.isLegacy,
     });
-
-    this.#validateRequiredMetadata(index);
 
     this.epub.metadata[index].optional = parseRootFileOptionalMetadata(
       metadata,
@@ -241,7 +279,29 @@ class Pubsie extends EventEmitter {
     }
   }
 
-  #parseRootFileManifest() {}
+  #parseRootFileManifest(index, manifest) {
+    this.epub.manifest[index] = parseRootFileManifest(manifest);
+  }
+
+  #validateManifest(index) {
+    let m = this.epub.manifest[index];
+
+    if (m.length == 0) {
+      this.emit(
+        "error",
+        new EmptyManifestError("No items were parsed from manifest")
+      );
+    }
+
+    if (m.filter((obj) => obj.id == "ncx").length == 0) {
+      this.emit(
+        "error",
+        new NoNcxError("Could not parse table of contents from manifest", {
+          legacy: this.epub.isLegacy,
+        })
+      );
+    }
+  }
   #parseRootFileSpine() {}
   #parseRootFileCollections() {}
 }
