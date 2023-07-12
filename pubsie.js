@@ -9,6 +9,7 @@ const {
   IncorrectMimeTypeError,
   NoMimeTypeFileError,
   EpubEncryptedError,
+  RequiredEpubMetadataMissingError,
 } = require("./helpers/errors");
 
 const {
@@ -142,7 +143,7 @@ class Pubsie extends EventEmitter {
           this.emit(
             "error",
             new IncorrectMimeTypeError(
-              "Incorrect mime type in container.xml may result in unknown behaviour"
+              "Incorrect mime type in container.xml may result in unknown parsing behaviour"
             )
           );
         }
@@ -176,10 +177,53 @@ class Pubsie extends EventEmitter {
       isLegacy: this.epub.isLegacy,
     });
 
+    this.#validateRequiredMetadata(index);
+
     this.epub.metadata[index].optional = parseRootFileOptionalMetadata(
       metadata,
       { isLegacy: this.epub.isLegacy }
     );
+  }
+
+  #validateRequiredMetadata(index) {
+    let m = this.epub.metadata[index];
+
+    for (const prop in m) {
+      let e;
+      switch (prop) {
+        case "identifier":
+          if (m[prop][0] == "identifier metadata MISSING") {
+            e = prop;
+          }
+          break;
+        case "title":
+          if (m[prop].primary == "title metadata MISSING") {
+            e = prop;
+          }
+          break;
+        case "language":
+          if (m[prop].primary == "language metadata MISSING") {
+            e = prop;
+          }
+          break;
+        case "dcterms_modified":
+          if (!this.epub.isLegacy) {
+            if (m[prop].endsWith("MISSING")) {
+              e = prop;
+            }
+          }
+          break;
+      }
+
+      if (e) {
+        this.emit(
+          "error",
+          new RequiredEpubMetadataMissingError("missing required metadata", {
+            required: e,
+          })
+        );
+      }
+    }
   }
 
   #parseRootFileManifest() {}

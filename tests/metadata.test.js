@@ -26,11 +26,13 @@ describe("metadata tests", () => {
 });
 
 describe("metadata error tests", () => {
-  it("should throw RequiredEpubMetadataError", () => {
+  it("should listen for error event and call mock callback", () => {
+    let mockCb = jest.fn()
     let pub = new pubsie(out_folder + "DIRTY.epub");
+    
+    pub.on('error', mockCb)
+    pub.parse();
 
-    expect(() => {
-      pub.parse();
-    }).toThrow("required");
+    expect(mockCb).toHaveBeenCalled();
   });
 });
