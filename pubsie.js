@@ -80,10 +80,10 @@ class Pubsie extends EventEmitter {
 
     if (!endsWithAny(acceptedExt, file)) throw new Error("Incorrect file type");
 
-    this.#infoInit();
+    this.#epubInit();
   }
 
-  #infoInit() {
+  #epubInit() {
     this.epub = {
       mimetype: "",
       opf: [], // .opf files [content.opf]
@@ -118,16 +118,17 @@ class Pubsie extends EventEmitter {
   }
 
   /**
-   * Builds cache of epub.
+   * Builds cache of epub. Should be called after parsing
    * @param {String} out write path, appends .cache.json.
    * @param {Boolean} noEntries defaults to `false`. Set to `true` to disable caching entries
    */
   buildCache(out, noEntries = false) {
-    const keys = ["entryName", "name", "isDirectory"];
     let filtered;
 
     // filters entries to key data
     if (!noEntries) {
+      const keys = ["entryName", "name", "isDirectory"];
+
       filtered = this.entries.map((entry) => {
         const f = {};
         keys.forEach((key) => {

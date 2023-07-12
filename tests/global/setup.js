@@ -50,6 +50,9 @@ module.exports = function (globalConfig, projectConfig) {
     if (err) throw new Error(err);
 
     let metadata = result.package.metadata[0];
+    let manifest = result.package.manifest[0];
+
+    delete manifest['item']
 
     delete metadata["dc:identifier"];
     delete metadata["dc:language"];
