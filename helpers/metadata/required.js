@@ -1,5 +1,3 @@
-const { RequiredEpubMetadataMissingError } = require("../errors");
-
 function parseRootFileRequiredMetadata(metadata, options) {
   return {
     identifier: parseIdentifier(metadata["dc:identifier"]),
@@ -22,9 +20,7 @@ function parseIdentifier(metadata) {
   }
 
   if (e.length == 0) {
-    throw new RequiredEpubMetadataMissingError(
-      "Epub is missing dc:identifier metadata"
-    );
+    return "identifier metadata MISSING"
   }
 
   return e;
@@ -51,9 +47,7 @@ function parseTitle(metadata) {
   }
 
   if (metadata.length == 0) {
-    throw new RequiredEpubMetadataMissingError(
-      "Epub is missing dc:title metadata"
-    );
+    return "title metadata MISSING";
   }
 
   return e;
@@ -73,9 +67,7 @@ function parseLanguage(metadata, isLegacy) {
   }
 
   if (metadata.length == 0) {
-    throw new RequiredEpubMetadataMissingError(
-      "Epub is missing dc:language metadata"
-    );
+    return "language metadata MISSING";
   }
 
   return e;
@@ -92,9 +84,7 @@ function ParseDctermsModified(metadata, isLegacy) {
   }
 
   if (!e && !isLegacy) {
-    throw new RequiredEpubMetadataMissingError(
-      "Epub is missing dcterms_modified (last modified date) metadata"
-    );
+    return "dcterms_modified (last modified date) metadata MISSING";
   }
   
   return e;

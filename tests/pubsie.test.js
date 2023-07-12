@@ -1,10 +1,9 @@
-const pubsie = require("../pubsie.js");
 const { getPubsie, out_folder } = require("./helper.js");
 
 const fs = require("fs");
 const path = require("path");
 
-describe("general test suite", () => {
+describe("general tests", () => {
   it("should parse random epub", () => {
     let pub = getPubsie();
     pub.parse();

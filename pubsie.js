@@ -2,9 +2,9 @@ var AdmZip = require("adm-zip");
 var parseString = require("xml2js").parseString;
 
 const fs = require("fs");
-const path = require('path')
+const path = require("path");
+const { EventEmitter } = require("node:events");
 
-// Custom Error Names for ease of handling
 const {
   IncorrectMimeTypeError,
   NoMimeTypeFileError,
@@ -16,9 +16,10 @@ const {
   parseRootFileOptionalMetadata,
 } = require("./helpers/metadata");
 
-class Pubsie {
+class Pubsie extends EventEmitter {
   #isCache = false;
   constructor(file) {
+    super();
     this.file = file;
 
     if (!this.file) {
@@ -103,9 +104,7 @@ class Pubsie {
   #parseStart() {
     if (this.#getEntry("META-INF/encryption.xml")) {
       this.isEncrypted = true;
-      throw new EpubEncryptedError(
-        "Epub is encrypted, parsing has resulted in unknown behaviour"
-      );
+      throw new EpubEncryptedError("Epub is encrypted");
     }
 
     this.#parseContainer(this.#getEntry("META-INF/container.xml"));
@@ -115,12 +114,15 @@ class Pubsie {
       if (mimetype.getData().toString("utf8") == "application/epub+zip") {
         this.epub.mimetype = "application/epub+zip";
       } else {
-        throw new IncorrectMimeTypeError(
-          "Incorrect mime type may result in unknown behaviour"
+        this.emit(
+          "error",
+          new IncorrectMimeTypeError(
+            "Incorrect mime type may result in unknown behaviour"
+          )
         );
       }
     } else {
-      throw new NoMimeTypeFileError("No mimetype file found");
+      this.emit("error", new NoMimeTypeFileError("No mimetype file found"));
     }
   }
 
@@ -137,8 +139,11 @@ class Pubsie {
         if (mime == "application/oebps-package+xml") {
           this.epub.opf.push(path);
         } else {
-          throw new IncorrectMimeTypeError(
-            "Incorrect mime type in container.xml may result in unknown behaviour"
+          this.emit(
+            "error",
+            new IncorrectMimeTypeError(
+              "Incorrect mime type in container.xml may result in unknown behaviour"
+            )
           );
         }
       });
