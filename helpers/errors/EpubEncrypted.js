@@ -1,8 +1,10 @@
-class EpubEncryptedError extends Error {
-  constructor(message, options) {
-    super(message, options);
-    this.name = "EpubEncryptedError";
+const _Error = require("./_error.js");
+
+class EpubEncryptedError extends _Error {
+  constructor(message, data = {}) {
+    super(message, data);
+    this.data.name = "EpubEncryptedError";
   }
 }
 
-module.exports = EpubEncryptedError
+module.exports = EpubEncryptedError;

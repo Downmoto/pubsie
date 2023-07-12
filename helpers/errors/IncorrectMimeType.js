@@ -1,8 +1,10 @@
-class IncorrectMimeTypeError extends Error {
-  constructor(message, options) {
-    super(message, options);
-    this.name = "IncorrectMimeTypeError";
+const _Error = require("./_error.js");
+
+class IncorrectMimeTypeError extends _Error {
+  constructor(message, data = {}) {
+    super(message, data);
+    this.data.name = "IncorrectMimeTypeError";
   }
 }
 
-module.exports = IncorrectMimeTypeError
+module.exports = IncorrectMimeTypeError;

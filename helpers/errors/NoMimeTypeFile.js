@@ -1,8 +1,10 @@
-class NoMimeTypeFileError extends Error {
-  constructor(message, options) {
-    super(message, options);
-    this.name = "NoMimeTypeFileError";
+const _Error = require("./_error.js");
+
+class NoMimeTypeFileError extends _Error {
+  constructor(message, data = {}) {
+    super(message, data);
+    this.data.name = "NoMimeTypeFileError";
   }
 }
 
-module.exports = NoMimeTypeFileError
+module.exports = NoMimeTypeFileError;
