@@ -25,12 +25,17 @@ describe("metadata test cases", () => {
 
 describe("metadata error test cases", () => {
   it("should listen for error event and call mock callback", () => {
-    let mockCb = jest.fn()
+    let mockCb = jest.fn((err) => err.data.name);
     let pub = new pubsie(out_folder + "DIRTY.epub");
     
     pub.on('error', mockCb)
     pub.parse();
 
+    let m = mockCb.mock.results.filter(
+      (obj) => obj.value == "RequiredEpubMetadataMissingError"
+    );
+
     expect(mockCb).toHaveBeenCalled();
+    expect(m[0]).toEqual({ type: "return", value: "RequiredEpubMetadataMissingError" });
   });
 });
