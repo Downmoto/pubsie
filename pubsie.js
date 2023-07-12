@@ -1,10 +1,13 @@
+// External dependencies
 var AdmZip = require("adm-zip");
 var parseString = require("xml2js").parseString;
 
+// Internal Node dependencies
 const fs = require("fs");
 const path = require("path");
 const { EventEmitter } = require("node:events");
 
+// Errors
 const {
   IncorrectMimeTypeError,
   NoMimeTypeFileError,
@@ -12,36 +15,40 @@ const {
   RequiredEpubMetadataMissingError,
 } = require("./helpers/errors");
 
+// Metadata parser helpers
 const {
   parseRootFileRequiredMetadata,
   parseRootFileOptionalMetadata,
 } = require("./helpers/metadata");
 
+/**
+ * Pubsie parses .epub files. Extends eventEmitter
+ * @constructor
+ * 
+ * @param {String} file path to .epub or .cache.json
+ * @emits error -- check documentation on github
+ */
 class Pubsie extends EventEmitter {
   #isCache = false;
   constructor(file) {
     super();
-    this.file = file;
 
-    if (!this.file) {
-      throw new Error("pubsie requires file arg");
-    }
+    this.file = file;
+    if (!this.file) throw new Error("pubsie requires file arg");
 
     const acceptedExt = ["epub", "cache.json"];
-
     if (this.file.endsWith(acceptedExt[1])) {
       this.#isCache = true;
     }
 
+    // TODO: move to appropriate location
     let endsWithAny = (acc, str) => {
       return acc.some((ext) => {
         return str.endsWith(ext);
       });
     };
 
-    if (!endsWithAny(acceptedExt, file)) {
-      throw new Error("Incorrect file type");
-    }
+    if (!endsWithAny(acceptedExt, file)) throw new Error("Incorrect file type");
 
     this.#infoInit();
   }
@@ -59,6 +66,10 @@ class Pubsie extends EventEmitter {
     return this.entries.find((item) => item.entryName == name);
   }
 
+  /**
+   * Parses epub or cache passed to constructor. This should be called
+   * after setting up event listeners.
+   */
   parse() {
     if (!this.#isCache) {
       let zip = new AdmZip(this.file);
@@ -75,9 +86,14 @@ class Pubsie extends EventEmitter {
     this.#parseRootFiles();
   }
 
+  /**
+   * Builds cache of epub.
+   * @param {String} out write path, appends .cache.json.
+   */
   buildCache(out) {
     const keys = ["entryName", "name", "isDirectory"];
 
+    // filters entries to key data
     const filtered = this.entries.map((entry) => {
       const f = {};
       keys.forEach((key) => {
@@ -103,6 +119,7 @@ class Pubsie extends EventEmitter {
   }
 
   #parseStart() {
+    // Encrypted epubs cannot be parsed
     if (this.#getEntry("META-INF/encryption.xml")) {
       this.isEncrypted = true;
       throw new EpubEncryptedError("Epub is encrypted");
@@ -131,9 +148,7 @@ class Pubsie extends EventEmitter {
     parseString(container.getData().toString("utf8"), (err, result) => {
       if (err) throw new Error(err);
 
-      let rootfiles = result.container.rootfiles;
-
-      rootfiles.forEach((rfo) => {
+      result.container.rootfiles.forEach((rfo) => {
         let mime = rfo.rootfile[0].$["media-type"];
         let path = rfo.rootfile[0].$["full-path"];
 
