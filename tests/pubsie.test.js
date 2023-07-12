@@ -3,7 +3,7 @@ const { getPubsie, out_folder } = require("./helper.js");
 const fs = require("fs");
 const path = require("path");
 
-describe("general tests", () => {
+describe("general test cases", () => {
   it("should parse random epub", () => {
     let pub = getPubsie();
     pub.parse();
@@ -15,7 +15,7 @@ describe("general tests", () => {
   it("should build cache", () => {
     let pub = getPubsie();
     pub.parse();
-    pub.buildCache(out_folder);
+    pub.buildCache(out_folder, true);
 
     let obj = JSON.parse(
       fs.readFileSync(

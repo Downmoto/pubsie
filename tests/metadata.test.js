@@ -1,9 +1,7 @@
 const { getPubsie, out_folder } = require("./helper.js");
 const pubsie = require("../pubsie.js");
 
-const { RequiredEpubMetadataMissingError } = require("../helpers/errors");
-
-describe("metadata tests", () => {
+describe("metadata test cases", () => {
   it("should parse metadata from root file(s)", () => {
     let pub = getPubsie();
     pub.parse();
@@ -25,7 +23,7 @@ describe("metadata tests", () => {
   });
 });
 
-describe("metadata error tests", () => {
+describe("metadata error test cases", () => {
   it("should listen for error event and call mock callback", () => {
     let mockCb = jest.fn()
     let pub = new pubsie(out_folder + "DIRTY.epub");
