@@ -36,8 +36,6 @@ Install pubsie with npm
     
 ## Running Tests
 
-To run tests, run the following command
-
 in tests directory, create a data directory and place epub files inside
 
 ```bash
@@ -47,6 +45,7 @@ tests
 │   └───dracula.epub
 └───global
 ```
+To run tests, run the following command
 
 ```bash
   npm run test

@@ -4,9 +4,10 @@ const path = require("path");
 const fs = require("fs");
 
 const pubsie = require(path.join(__dirname, "../../pubsie.js"));
+const { getRandomEpub } = require("../helper.js")
 
 // CHANGE THIS TO TEST OTHER EPUBs
-const SETUP_BASE_FILEPATH = "moby.epub";
+const SETUP_BASE_FILEPATH = getRandomEpub();
 
 const SETUP_DATA_FILEPATH = path.join(__dirname, "../data/");
 const SETUP_OUT_DIRECTORY = path.join(__dirname, "../out/");
