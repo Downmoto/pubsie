@@ -38,6 +38,16 @@ Install pubsie with npm
 
 To run tests, run the following command
 
+in tests directory, create a data directory and place epub files inside
+
+```bash
+tests
+├───data
+│   ├───moby-dick.epub
+│   └───dracula.epub
+└───global
+```
+
 ```bash
   npm run test
 ```
