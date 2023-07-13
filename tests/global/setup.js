@@ -12,23 +12,9 @@ const SETUP_BASE_FILEPATH = getRandomEpub();
 const SETUP_DATA_FILEPATH = path.join(__dirname, "../data/");
 const SETUP_OUT_DIRECTORY = path.join(__dirname, "../out/");
 
-function buildCache() {
-  let filenames = fs.readdirSync(SETUP_DATA_FILEPATH);
-
-  filenames.forEach((file) => {
-    let epub = new pubsie(
-      SETUP_DATA_FILEPATH.concat(file),
-    );
-
-    epub.parse();
-    epub.buildCache(SETUP_OUT_DIRECTORY.concat(`cached_data/`));
-  });
-}
-
 function buildDirectories() {
   let dirs = [
     SETUP_OUT_DIRECTORY,
-    path.join(SETUP_OUT_DIRECTORY, "cached_data/"),
   ];
 
   dirs.forEach((dir) => {
@@ -77,6 +63,5 @@ module.exports = function (globalConfig, projectConfig) {
     zip.writeZip(SETUP_OUT_DIRECTORY + "DIRTY.epub");
   });
 
-  buildCache();
   console.log("\n### Setup complete ###");
 };

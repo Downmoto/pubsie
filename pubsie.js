@@ -42,7 +42,7 @@ const {
   RequiredEpubMetadataMissingError,
   EmptyManifestError,
   NoNcxError,
-  EmptySpineError
+  EmptySpineError,
 } = require("./helpers/errors");
 
 // Metadata parser helpers
@@ -123,11 +123,21 @@ class Pubsie extends EventEmitter {
   }
 
   /**
-   * Builds cache of epub. Should be called after parsing
-   * @param {String} out write path, appends .cache.json.
-   * @param {Boolean} cacheEntries defaults to `false`. Set to `true` to enable caching entries
+   * Constructs a cache with customizable options.
+   *
+   * @param {string} out - The output or destination of the cache.
+   * @param {Object} options - The options for building the cache.
+   * @param {boolean} [options.cacheEntries=false] - Indicates whether to include cache entries.
+   * @param {boolean} [options.cacheManifest=false] - Indicates whether to include the cache manifest.
+   * @param {boolean} [options.cacheSpine=true] - Indicates whether to include the cache spine.
    */
-  buildCache(out, cacheEntries = false) {
+  buildCache(out, options = {}) {
+    const {
+      cacheEntries = false,
+      cacheManifest = false,
+      cacheSpine = true,
+    } = options;
+    
     let filtered;
 
     // filters entries to key data
@@ -150,6 +160,14 @@ class Pubsie extends EventEmitter {
       epub: this.epub,
       entries: filtered,
     };
+
+    if (!cacheManifest) {
+      delete cache.epub.manifest;
+    }
+
+    if (!cacheSpine) {
+      delete cache.epub.spine;
+    }
 
     let data = JSON.stringify(cache);
 
