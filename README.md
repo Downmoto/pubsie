@@ -31,7 +31,7 @@ console.log(pub.epub) // .epub property stores parsed data
 Install pubsie with npm
 
 ```bash
-  npm install https://github.com/Downmoto/pubsie
+  npm i pubsie
 ```
     
 ## Running Tests
