@@ -42,6 +42,7 @@ const {
   RequiredEpubMetadataMissingError,
   EmptyManifestError,
   NoNcxError,
+  EmptySpineError
 } = require("./helpers/errors");
 
 // Metadata parser helpers
@@ -50,7 +51,10 @@ const {
   parseRootFileOptionalMetadata,
 } = require("./helpers/metadata");
 
+// Manifest parser helper
 const { parseRootFileManifest } = require("./helpers/manifest");
+// Spine parser helper
+const { parseRootFileSpine } = require("./helpers/spine");
 
 /**
  * Pubsie parses `.epub` files. Extends `EventEmitter`
@@ -89,7 +93,8 @@ class Pubsie extends EventEmitter {
       opf: [], // .opf files [content.opf]
       epubVersion: "", // 3+ recommended, legacy features will not be maintained
       metadata: [],
-      manifest: {},
+      manifest: [],
+      spine: [],
     };
   }
 
@@ -120,13 +125,13 @@ class Pubsie extends EventEmitter {
   /**
    * Builds cache of epub. Should be called after parsing
    * @param {String} out write path, appends .cache.json.
-   * @param {Boolean} noEntries defaults to `false`. Set to `true` to disable caching entries
+   * @param {Boolean} cacheEntries defaults to `false`. Set to `true` to enable caching entries
    */
-  buildCache(out, noEntries = false) {
+  buildCache(out, cacheEntries = false) {
     let filtered;
 
     // filters entries to key data
-    if (!noEntries) {
+    if (cacheEntries) {
       const keys = ["entryName", "name", "isDirectory"];
 
       filtered = this.entries.map((entry) => {
@@ -214,11 +219,14 @@ class Pubsie extends EventEmitter {
 
         this.#parseEpubVersion(result.package);
 
-        this.#parseRootFileMetadata(i, result.package.metadata[i]);
+        this.#parseRootFileMetadata(i, result.package.metadata[0]);
         this.#validateRequiredMetadata(i);
 
-        this.#parseRootFileManifest(i, result.package.manifest[i]);
+        this.#parseRootFileManifest(i, result.package.manifest[0]);
         this.#validateManifest(i);
+
+        this.#parseRootFileSpine(i, result.package.spine[0]);
+        this.#validateSpine(i);
       });
     }
   }
@@ -303,7 +311,29 @@ class Pubsie extends EventEmitter {
       );
     }
   }
-  #parseRootFileSpine() {}
+
+  #parseRootFileSpine(index, spine) {
+    this.epub.spine[index] = parseRootFileSpine(spine);
+  }
+
+  #validateSpine(index) {
+    let spine = this.epub.spine[index];
+
+    if (spine.itemrefs.length == 0) {
+      this.emit(
+        "error",
+        new EmptySpineError("No items were parsed from spine")
+      );
+    }
+
+    if (!spine.toc) {
+      this.emit(
+        "error",
+        new NoNcxError("Could not parse table of contents from spine")
+      );
+    }
+  }
+
   #parseRootFileCollections() {}
 }
 

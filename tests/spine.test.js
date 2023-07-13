@@ -1,22 +1,20 @@
 const { getPubsie, out_folder } = require("./helper.js");
 const pubsie = require("../pubsie.js");
 
-describe("manifest test cases", () => {
-  it("should parse manifest items from root file(s)", () => {
+describe("spine test cases", () => {
+  it("should parse spine items from root file(s)", () => {
     let pub = getPubsie();
     pub.parse();
 
     let randomIndex =
-      pub.epub.manifest[0].items[
-        ~~(Math.random() * pub.epub.manifest[0].items.length)
+      pub.epub.spine[0].itemrefs[
+        ~~(Math.random() * pub.epub.spine[0].itemrefs.length)
       ];
 
     let expected_objects = {
-      fallback: expect.toBeOneOf([expect.any(String), undefined]),
-      href: expect.any(String),
-      id: expect.any(String),
-      mediaType: expect.any(String),
-      mediaOverlay: expect.toBeOneOf([expect.any(String), undefined]),
+      id: expect.toBeOneOf([expect.any(String), undefined]),
+      idref: expect.any(String),
+      linear: expect.toBeOneOf([expect.any(String), undefined]),
       properties: expect.toBeOneOf([expect.any(String), undefined]),
     };
 
@@ -24,7 +22,7 @@ describe("manifest test cases", () => {
   });
 });
 
-describe("manifest error test cases", () => {
+describe("spine error test cases", () => {
   it("should listen for error event and call mock callback", () => {
     let mockCb = jest.fn((err) => err.data.name);
     let pub = new pubsie(out_folder + "DIRTY.epub");
@@ -37,7 +35,7 @@ describe("manifest error test cases", () => {
     expect(mockCb).toHaveBeenCalled();
     expect(m[0]).toEqual({ type: "return", value: "NoNcxError" });
 
-    m = mockCb.mock.results.filter((obj) => obj.value == "EmptyManifestError");
-    expect(m[0]).toEqual({ type: "return", value: "EmptyManifestError" });
+    m = mockCb.mock.results.filter((obj) => obj.value == "EmptySpineError");
+    expect(m[0]).toEqual({ type: "return", value: "EmptySpineError" });
   });
 });

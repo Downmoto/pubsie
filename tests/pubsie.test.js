@@ -15,7 +15,7 @@ describe("general test cases", () => {
   it("should build cache", () => {
     let pub = getPubsie();
     pub.parse();
-    pub.buildCache(out_folder, true);
+    pub.buildCache(out_folder);
 
     let obj = JSON.parse(
       fs.readFileSync(
