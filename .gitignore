@@ -3,3 +3,4 @@ node_modules/
 
 tests/data/cached_data
 tests/out
+tests/data
