@@ -34,6 +34,8 @@ const fs = require("fs");
 const path = require("path");
 const { EventEmitter } = require("node:events");
 
+const { endsWithAny } = require("./helpers/helper.js");
+
 // Errors
 const {
   IncorrectMimeTypeError,
@@ -43,6 +45,7 @@ const {
   EmptyManifestError,
   NoNcxError,
   EmptySpineError,
+  NoTocError,
 } = require("./helpers/errors");
 
 // Metadata parser helpers
@@ -68,30 +71,23 @@ class Pubsie extends EventEmitter {
     super();
 
     this.file = file;
-    if (!this.file) throw new Error("pubsie requires file arg");
+    if (!this.file) {
+      throw new Error("pubsie requires file arg");
+    }
 
-    const acceptedExt = ["epub", "cache.json"];
-    if (this.file.endsWith(acceptedExt[1])) {
+    const ext = ["epub", "cache.json"];
+    if (this.file.endsWith(ext[1])) {
       this.#isCache = true;
     }
 
-    // TODO: move to appropriate location
-    let endsWithAny = (acc, str) => {
-      return acc.some((ext) => {
-        return str.endsWith(ext);
-      });
-    };
+    if (!endsWithAny(ext, file)) {
+      throw new Error("Incorrect file type");
+    }
 
-    if (!endsWithAny(acceptedExt, file)) throw new Error("Incorrect file type");
-
-    this.#epubInit();
-  }
-
-  #epubInit() {
     this.epub = {
       mimetype: "",
-      opf: [], // .opf files [content.opf]
-      epubVersion: "", // 3+ recommended, legacy features will not be maintained
+      opf: [],
+      epubVersion: "",
       metadata: [],
       manifest: [],
       spine: [],
@@ -118,7 +114,7 @@ class Pubsie extends EventEmitter {
       return;
     }
 
-    this.#parseStart();
+    this.#_parse();
     this.#parseRootFiles();
   }
 
@@ -128,21 +124,21 @@ class Pubsie extends EventEmitter {
    * @param {string} out - The output or destination of the cache.
    * @param {Object} options - The options for building the cache.
    * @param {boolean} [options.cacheEntries=false] - Indicates whether to include cache entries.
-   * @param {boolean} [options.cacheManifest=false] - Indicates whether to include the cache manifest.
-   * @param {boolean} [options.cacheSpine=true] - Indicates whether to include the cache spine.
+   * @param {boolean} [options.cacheManifest=true] - Indicates whether to include the cache manifest.
+   * @param {boolean} [options.cacheSpine=false] - Indicates whether to include the cache spine.
    */
   buildCache(out, options = {}) {
     const {
       cacheEntries = false,
-      cacheManifest = false,
-      cacheSpine = true,
+      cacheManifest = true,
+      cacheSpine = false,
     } = options;
-    
+
     let filtered;
 
     // filters entries to key data
     if (cacheEntries) {
-      const keys = ["entryName", "name", "isDirectory"];
+      const keys = ["entryName", "name"];
 
       filtered = this.entries.map((entry) => {
         const f = {};
@@ -177,18 +173,16 @@ class Pubsie extends EventEmitter {
     fs.writeFileSync(o, data);
   }
 
-  #parseStart() {
+  #_parse() {
     // Encrypted epubs cannot be parsed
     if (this.#getEntry("META-INF/encryption.xml")) {
       this.isEncrypted = true;
       throw new EpubEncryptedError("Epub is encrypted");
     }
 
-    this.#parseContainer(this.#getEntry("META-INF/container.xml"));
-
     let mimetype = this.#getEntry("mimetype");
     if (mimetype) {
-      if (mimetype.getData().toString("utf8") == "application/epub+zip") {
+      if (mimetype.getData().toString("utf8") === "application/epub+zip") {
         this.epub.mimetype = "application/epub+zip";
       } else {
         this.emit(
@@ -201,15 +195,17 @@ class Pubsie extends EventEmitter {
     } else {
       this.emit("error", new NoMimeTypeFileError("No mimetype file found"));
     }
+
+    this.#parseContainer(this.#getEntry("META-INF/container.xml"));
   }
 
   #parseContainer(container) {
     parseString(container.getData().toString("utf8"), (err, result) => {
       if (err) throw new Error(err);
 
-      result.container.rootfiles.forEach((rfo) => {
-        let mime = rfo.rootfile[0].$["media-type"];
-        let path = rfo.rootfile[0].$["full-path"];
+      result.container.rootfiles.forEach((rfContainer) => {
+        let mime = rfContainer.rootfile[0].$["media-type"];
+        let path = rfContainer.rootfile[0].$["full-path"];
 
         if (mime == "application/oebps-package+xml") {
           this.epub.opf.push(path);
@@ -225,7 +221,6 @@ class Pubsie extends EventEmitter {
     });
   }
 
-  // TODO: POSSIBLE ERROR INCASE OF MULTIPLE ROOTFILES. ACCOUNT FOR IN FUTURE
   #parseRootFiles() {
     for (let i = 0; i < this.epub.opf.length; i++) {
       const rootfile = this.epub.opf[i];
@@ -240,11 +235,17 @@ class Pubsie extends EventEmitter {
         this.#parseRootFileMetadata(i, result.package.metadata[0]);
         this.#validateRequiredMetadata(i);
 
-        this.#parseRootFileManifest(i, result.package.manifest[0]);
+        this.epub.manifest[i] = parseRootFileManifest(
+          result.package.manifest[0]
+        );
         this.#validateManifest(i);
 
-        this.#parseRootFileSpine(i, result.package.spine[0]);
+        this.epub.spine[i] = parseRootFileSpine(
+          result.package.spine[0]
+        );
         this.#validateSpine(i);
+
+        this.#parseToc(i);
       });
     }
   }
@@ -306,10 +307,6 @@ class Pubsie extends EventEmitter {
     }
   }
 
-  #parseRootFileManifest(index, manifest) {
-    this.epub.manifest[index] = parseRootFileManifest(manifest);
-  }
-
   #validateManifest(index) {
     let m = this.epub.manifest[index].items;
 
@@ -330,10 +327,6 @@ class Pubsie extends EventEmitter {
     }
   }
 
-  #parseRootFileSpine(index, spine) {
-    this.epub.spine[index] = parseRootFileSpine(spine);
-  }
-
   #validateSpine(index) {
     let spine = this.epub.spine[index];
 
@@ -352,7 +345,23 @@ class Pubsie extends EventEmitter {
     }
   }
 
-  #parseRootFileCollections() {}
+  #parseToc(index) {
+    let id = this.epub.spine[index].toc;
+    let toc = this.epub.manifest[index].items.find((o) => o.id == id);
+
+    try {
+      let tocEntry = this.#getEntry(`OEBPS/${toc.href}`);
+      console.log(tocEntry.entryName);
+    } catch (error) {
+      this.emit(
+        "error",
+        new NoTocError(
+          "Unable to locate Toc file from spine and manifest parsed information",
+          { error }
+        )
+      ); //TODO ERROR
+    }
+  }
 }
 
 module.exports = Pubsie;

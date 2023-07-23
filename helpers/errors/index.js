@@ -5,6 +5,7 @@ const EpubEncryptedError = require("./EpubEncrypted.js");
 
 const EmptyManifestError = require("./EmptyManifest.js")
 const NoNcxError = require("./NoNcx.js")
+const NoTocError = require("./NoToc.js")
 
 const EmptySpineError = require("./EmptySpine.js")
 
@@ -15,5 +16,6 @@ module.exports = {
   EpubEncryptedError,
   EmptyManifestError,
   NoNcxError,
-  EmptySpineError
+  NoTocError,
+  EmptySpineError,
 };

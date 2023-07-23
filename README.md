@@ -2,6 +2,8 @@
 
 A JavaScript package for parsing EPUB files and extracting their contents. This package provides a convenient way to extract metadata, chapters, and other resources from EPUB files in your JavaScript applications.
 
+This package will aim to eventually adhere, in full, to the EPUB specifications documented [here](https://www.w3.org/TR/epub-33/)
+
 
 ## Usage/Examples
 
