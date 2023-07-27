@@ -59,6 +59,14 @@ const { parseRootFileManifest } = require("./helpers/manifest");
 // Spine parser helper
 const { parseRootFileSpine } = require("./helpers/spine");
 
+const { parseNcx, parseXhtml } = require("./helpers/toc");
+
+
+// TODO: OEBPS is non standard and files can be kept in any directory outside of 
+// the META-INF (standard) directory. Parse folder name and change OEBPS to
+// correct, machine parsed, directory name.
+
+
 /**
  * Pubsie parses `.epub` files. Extends `EventEmitter`
  *
@@ -240,9 +248,7 @@ class Pubsie extends EventEmitter {
         );
         this.#validateManifest(i);
 
-        this.epub.spine[i] = parseRootFileSpine(
-          result.package.spine[0]
-        );
+        this.epub.spine[i] = parseRootFileSpine(result.package.spine[0]);
         this.#validateSpine(i);
 
         this.#parseToc(i);
@@ -346,20 +352,30 @@ class Pubsie extends EventEmitter {
   }
 
   #parseToc(index) {
-    let id = this.epub.spine[index].toc;
-    let toc = this.epub.manifest[index].items.find((o) => o.id == id);
+    let manifest = this.epub.manifest[index];
 
-    try {
-      let tocEntry = this.#getEntry(`OEBPS/${toc.href}`);
-      console.log(tocEntry.entryName);
-    } catch (error) {
-      this.emit(
-        "error",
-        new NoTocError(
-          "Unable to locate Toc file from spine and manifest parsed information",
-          { error }
-        )
-      ); //TODO ERROR
+    if (this.epub.isLegacy) {
+      let id = this.epub.spine[index].toc;
+      let toc = manifest.items.find((o) => o.id == id);
+      console.log("legacy\n" +toc);
+
+      // let xml = this.#getEntry(`OEBPS/${toc.href}`);
+
+      // parseString(xml, (err, result) => {
+      //   if (err) throw new Error(err);
+
+      //   this.epub.toc = parseNcx(result);
+      // });
+    } else {
+      let toc = manifest.items.find(o => o.properties == 'nav')
+      console.log(toc)
+      // let xml = this.#getEntry(`OEBPS/${toc.href}`);
+
+      // parseString(xml, (err, result) => {
+      //   if (err) throw new Error(err);
+
+      //   this.epub.toc = parseXhtml(result);
+      // });
     }
   }
 }
