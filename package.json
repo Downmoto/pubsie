@@ -1,10 +1,11 @@
 {
   "name": "pubsie",
-  "version": "2.0.0",
-  "description": "",
+  "version": "2.0.1",
+  "description": "A library to parse and build EPUB files.",
   "main": "pubsie.js",
   "scripts": {
-    "test": "test"
+    "test": "jest",
+    "build": "tsc"
   },
   "keywords": [
     "epub"
@@ -12,8 +13,16 @@
   "author": "arad fadaei",
   "license": "ISC",
   "dependencies": {
-    "adm-zip": "^0.5.12",
+    "@types/adm-zip": "^0.5.7",
+    "adm-zip": "^0.5.16",
     "jest": "^29.7.0",
+    "jszip-utils": "^0.1.0",
     "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/xml2js": "^0.4.14",
+    "ts-jest": "^29.3.4",
+    "typescript": "^5.8.3"
   }
 }
