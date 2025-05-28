@@ -2,6 +2,7 @@
 .vscode/
 
 tests/
+coverage/
 
 .gitignore
 .prettierrc

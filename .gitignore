@@ -1,3 +1,7 @@
-node_modules/
 .DS_store
+
+node_modules/
+coverage/
+
 tests/test_files/Persia/
+tests/manual.test.*

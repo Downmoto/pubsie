@@ -7,4 +7,7 @@ module.exports = {
     "^.+\\.ts$": "ts-jest",
   },
   testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.ts$",
+  testPathIgnorePatterns: [
+    "<rootDir>/tests/manual.test.ts"
+  ]
 };
