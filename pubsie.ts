@@ -58,11 +58,12 @@ export class Pubsie {
 
     if (!result)
       throw new Error(
-        "Failed to extract content: entry not found or unreadable"
+        "Failed to extract content: entry not found or unreadable",
       );
 
     return result;
   }
+
   #validateMimetype() {
     const mimetypeFile = this.#findEntry("mimetype");
 
