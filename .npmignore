@@ -1,2 +1,13 @@
-# Exclude test files and large assets from npm package
-/tests/
+.github/
+.vscode/
+
+tests/
+
+.gitignore
+.prettierrc
+.prettierignore
+jest.config.js
+tsconfig.json
+*.log
+
+readme.md
