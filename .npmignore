@@ -1,0 +1,2 @@
+# Exclude test files and large assets from npm package
+/tests/
