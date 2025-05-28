@@ -27,15 +27,3 @@ jobs:
 
       - name: Run tests
         run: npm test
-
-      - name: Run Prettier and push if on v2 and tests passed
-        if: github.ref == 'refs/heads/v2' && success()
-        run: |
-          npx prettier --write .
-          if [[ `git status --porcelain` ]]; then
-            git config --global user.name 'github-actions[bot]'
-            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-            git add .
-            git commit -m 'chore: format code with Prettier [auto-commit]'
-            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git v2
-          fi
