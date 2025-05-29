@@ -1,0 +1,61 @@
+{
+  "root": {
+    "name": "container",
+    "usage": "1",
+    "attr": [{ "name": "version", "usage": "1", "value": "1.0" }],
+    "children": [
+      {
+        "name": "rootfiles",
+        "usage": "1",
+        "attr": [],
+        "children": [
+          {
+            "name": "rootfile",
+            "usage": "1+",
+            "attr": [
+              {
+                "name": "full-path",
+                "usage": "1",
+                "type": "URL"
+              },
+              {
+                "name": "media-type",
+                "usage": "1",
+                "value": "application/oebps-package+xml"
+              }
+            ],
+            "children": []
+          }
+        ]
+      },
+      {
+        "name": "links",
+        "usage": "0+",
+        "attr": [],
+        "children": [
+          {
+            "name": "link",
+            "usage": "1+",
+            "attr": [
+              {
+                "name": "href",
+                "usage": "1",
+                "type": "URL"
+              },
+              {
+                "name": "media-type",
+                "usage": "0-1",
+                "type": "media type"
+              },
+              {
+                "name": "rel",
+                "usage": "1",
+                "type": "string"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

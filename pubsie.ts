@@ -26,7 +26,8 @@
  */
 
 import AdmZip from "adm-zip";
-import { parseString } from "xml2js";
+
+import parseContainer from "./utils/metainfParser";
 
 const MIMETYPE: string = "application/epub+zip";
 
@@ -39,16 +40,30 @@ export class Pubsie {
   constructor(pathToEpub: string, epubPassword?: string) {
     this.#password = epubPassword;
     this.#file = pathToEpub;
-    if (!this.#file) {
-      throw new Error("Pubsie requires file arg");
-    }
 
     this.#openFile();
     this.#validateMimetype();
   }
 
-  #findEntry(entryName: string): AdmZip.IZipEntry | undefined {
-    return this.#entries.find((e) => e.entryName === entryName);
+  parse() {
+    const meta_inf = "META-INF/";
+
+    let content = this.#extractContent(
+      this.#findEntry(meta_inf + "container.xml"),
+    );
+
+    if (content) {
+      parseContainer(content);
+    }
+  }
+
+  #findEntry(entryName: string): AdmZip.IZipEntry {
+    const entry = this.#entries.find((e) => e.entryName === entryName);
+
+    if (!entry) {
+      throw new Error(`Entry not found: ${entryName}`);
+    }
+    return entry;
   }
 
   #extractContent(entry: AdmZip.IZipEntry): Buffer {
@@ -78,6 +93,10 @@ export class Pubsie {
   }
 
   #openFile() {
+    if (!this.#file) {
+      throw new Error("Pubsie requires file arg");
+    }
+
     this.#zip = new AdmZip(this.#file);
     this.#entries = this.#zip.getEntries();
   }
