@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">
+  <rootfiles>
+    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+  </rootfiles>
+  <links>
+    <link href="metadata.xml" rel="metadata"/>
+    <link href="resources.xml" media-type="application/xml" rel="resources"/>
+    <link href="signatures.xml" media-type="application/xml" rel="signatures"/>
+  </links>
+</container>

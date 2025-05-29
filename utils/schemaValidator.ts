@@ -1,4 +1,4 @@
-export interface SchemaNode {
+interface SchemaNode {
   name: string;
   usage: string;
   attr?: Array<{

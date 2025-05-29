@@ -45,7 +45,7 @@ export class Pubsie {
     this.#validateMimetype();
   }
 
-  parse() {
+  async parse() {
     const meta_inf = "META-INF/";
 
     let content = this.#extractContent(
@@ -53,7 +53,7 @@ export class Pubsie {
     );
 
     if (content) {
-      parseContainer(content);
+      await parseContainer(content);
     }
   }
 

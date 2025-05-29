@@ -29,9 +29,7 @@ describe("Pubsie", () => {
     zip.addFile("somefile.txt", Buffer.from("test"));
     zip.writeZip(tmpZipPath);
 
-    expect(() => new Pubsie(tmpZipPath)).toThrow(
-      "Entry not found: mimetype",
-    );
+    expect(() => new Pubsie(tmpZipPath)).toThrow("Entry not found: mimetype");
 
     fs.unlinkSync(tmpZipPath);
   });
