@@ -30,7 +30,7 @@ describe("Pubsie", () => {
     zip.writeZip(tmpZipPath);
 
     expect(() => new Pubsie(tmpZipPath)).toThrow(
-      "No mimetype file found in archive",
+      "Entry not found: mimetype",
     );
 
     fs.unlinkSync(tmpZipPath);

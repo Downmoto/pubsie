@@ -82,10 +82,6 @@ export class Pubsie {
   #validateMimetype() {
     const mimetypeFile = this.#findEntry("mimetype");
 
-    if (!mimetypeFile) {
-      throw new Error("No mimetype file found in archive");
-    }
-
     const mimetype = this.#extractContent(mimetypeFile);
     if (mimetype.toString("utf-8") !== MIMETYPE) {
       throw new Error("Invalid mimetype in EPUB archive");
