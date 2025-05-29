@@ -5,6 +5,7 @@
   "main": "pubsie.js",
   "scripts": {
     "test": "jest",
+    "test-manual": "jest tests/manual.test.ts --testPathIgnorePatterns=\"\"",
     "build": "tsc"
   },
   "keywords": [
