@@ -1,14 +1,25 @@
+# source files
+*.ts
+!*.d.ts
+
+# config files
 .github/
 .vscode/
-
-tests/
-coverage/
-
 .gitignore
 .prettierrc
 .prettierignore
 jest.config.js
 tsconfig.json
+
+# test files
+tests/
+coverage/
+
+# development files
+node_modules/
+
+# misc
 *.log
 
-readme.md
+# keep the readme for npm
+# readme.md

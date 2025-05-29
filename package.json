@@ -2,18 +2,30 @@
   "name": "pubsie",
   "version": "2.0.4",
   "description": "A library to parse and build EPUB files.",
-  "main": "pubsie.js",
+  "main": "dist/pubsie.js",
+  "types": "dist/pubsie.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
     "test": "jest",
     "test-manual": "jest tests/manual.test.ts --testPathIgnorePatterns=\"\"",
     "build": "tsc",
+    "prepare": "npm run build",
     "fmt": "prettier --write ."
   },
   "keywords": [
-    "epub"
+    "epub",
+    "ebook",
+    "parser",
+    "reader"
   ],
   "author": "arad fadaei",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Downmoto/pubsie"
+  },
   "dependencies": {
     "adm-zip": "^0.5.16",
     "jest": "^29.7.0",
