@@ -1,6 +1,6 @@
 {
   "name": "pubsie",
-  "version": "2.0.2",
+  "version": "2.0.4",
   "description": "A library to parse and build EPUB files.",
   "main": "pubsie.js",
   "scripts": {
