@@ -8,7 +8,7 @@ const CONTAINER_SCHEMA_PATH = path.join(
   "./schemas/container.schema.json",
 );
 
-interface Container {
+export interface Container {
   version: number;
   rootfiles: Rootfile[];
   links?: Link[];

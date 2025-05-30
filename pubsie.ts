@@ -26,35 +26,61 @@
  */
 
 import AdmZip from "adm-zip";
-
-import parseContainer from "./utils/metainfParser";
+import parseContainer, { Container } from "./utils/metainfParser";
 
 const MIMETYPE: string = "application/epub+zip";
 
+interface Epub {
+  container?: Container
+}
+
+/**
+ * pubsie main class for parsing epub files
+ */
 export class Pubsie {
   #file: string;
   #password: string | undefined;
   #entries!: AdmZip.IZipEntry[];
   #zip!: AdmZip;
+  #epub: Epub;
 
   constructor(pathToEpub: string, epubPassword?: string) {
     this.#password = epubPassword;
     this.#file = pathToEpub;
+    this.#epub = {}
 
     this.#openFile();
     this.#validateMimetype();
   }
 
-  async parse() {
+  async parse(): Promise<Epub> {
     const meta_inf = "META-INF/";
+
+    // check if epub is encrypted, if encrypted throw error and stop parsing
+    try {
+      this.#findEntry(meta_inf + "encryption.xml");
+    } catch (err: any) {
+      // if the error is Entry not found, continue parsing function,
+      // if the error is something else, throw it
+      if (
+        !(
+          err instanceof Error &&
+          err.message === `Entry not found: ${meta_inf}encryption.xml`
+        )
+      ) {
+        throw err;
+      }
+    }
 
     let content = this.#extractContent(
       this.#findEntry(meta_inf + "container.xml"),
     );
 
     if (content) {
-      await parseContainer(content);
+      this.#epub.container = await parseContainer(content);
+      // the remaining documents are non-normative and will not be parsed
     }
+    return this.#epub;
   }
 
   #findEntry(entryName: string): AdmZip.IZipEntry {
