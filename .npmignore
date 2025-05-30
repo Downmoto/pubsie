@@ -5,6 +5,7 @@
 # config files
 .github/
 .vscode/
+.husky/
 .gitignore
 .prettierrc
 .prettierignore
