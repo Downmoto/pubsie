@@ -31,7 +31,7 @@ import parseContainer, { Container } from "./utils/metainfParser";
 const MIMETYPE: string = "application/epub+zip";
 
 interface Epub {
-  container?: Container
+  container?: Container;
 }
 
 /**
@@ -47,7 +47,7 @@ export class Pubsie {
   constructor(pathToEpub: string, epubPassword?: string) {
     this.#password = epubPassword;
     this.#file = pathToEpub;
-    this.#epub = {}
+    this.#epub = {};
 
     this.#openFile();
     this.#validateMimetype();
