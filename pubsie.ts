@@ -27,6 +27,9 @@
 
 import AdmZip from "adm-zip";
 import parseContainer, { Container } from "./utils/metainfParser";
+import EntryNotFoundError from "./utils/errors/EntryNotFoundError";
+import ExtractionError from "./utils/errors/ExtractionError";
+import MimetypeError from "./utils/errors/MimetypeError";
 
 const MIMETYPE: string = "application/epub+zip";
 
@@ -42,7 +45,7 @@ export class Pubsie {
   #password: string | undefined;
   #entries!: AdmZip.IZipEntry[];
   #zip!: AdmZip;
-  #epub: Epub;
+  #epub!: Epub;
 
   constructor(pathToEpub: string, epubPassword?: string) {
     this.#password = epubPassword;
@@ -60,14 +63,7 @@ export class Pubsie {
     try {
       this.#findEntry(meta_inf + "encryption.xml");
     } catch (err: any) {
-      // if the error is Entry not found, continue parsing function,
-      // if the error is something else, throw it
-      if (
-        !(
-          err instanceof Error &&
-          err.message === `Entry not found: ${meta_inf}encryption.xml`
-        )
-      ) {
+      if (!(err instanceof EntryNotFoundError)) {
         throw err;
       }
     }
@@ -78,8 +74,14 @@ export class Pubsie {
 
     if (content) {
       this.#epub.container = await parseContainer(content);
-      // the remaining documents are non-normative and will not be parsed
     }
+
+    let pathToOpf = this.#getOpfRootfile();
+
+    if (pathToOpf) {
+      content = this.#extractContent(this.#findEntry(pathToOpf?.fullPath));
+    }
+
     return this.#epub;
   }
 
@@ -87,7 +89,7 @@ export class Pubsie {
     const entry = this.#entries.find((e) => e.entryName === entryName);
 
     if (!entry) {
-      throw new Error(`Entry not found: ${entryName}`);
+      throw new EntryNotFoundError("Entry not found: ", entryName);
     }
     return entry;
   }
@@ -98,19 +100,42 @@ export class Pubsie {
       : this.#zip.readFile(entry);
 
     if (!result)
-      throw new Error(
-        "Failed to extract content: entry not found or unreadable",
+      throw new ExtractionError(
+        "entry not found or unreadable",
+        entry.entryName
       );
 
     return result;
+  }
+
+  #getOpfRootfile() {
+    let rootfiles = this.#epub.container?.rootfiles;
+    const expectedMediaType = "application/oebps-package+xml";
+
+    if (rootfiles) {
+      return rootfiles?.find((rf) => {
+        rf.mediaType === expectedMediaType;
+      });
+    } else {
+      throw new MimetypeError(
+        "container has no rootfile with required mimetype",
+        undefined,
+        expectedMediaType
+      );
+    }
   }
 
   #validateMimetype() {
     const mimetypeFile = this.#findEntry("mimetype");
 
     const mimetype = this.#extractContent(mimetypeFile);
-    if (mimetype.toString("utf-8") !== MIMETYPE) {
-      throw new Error("Invalid mimetype in EPUB archive");
+    const actualMimetype = mimetype.toString("utf-8");
+    if (actualMimetype !== MIMETYPE) {
+      throw new MimetypeError(
+        "invalid mimetype in epub archive",
+        actualMimetype,
+        MIMETYPE
+      );
     }
   }
 
