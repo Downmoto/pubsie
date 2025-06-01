@@ -37,6 +37,22 @@ interface Epub {
   container?: Container;
 }
 
+class Entry {
+  #entry: AdmZip.IZipEntry;
+  public name: string;
+
+  constructor(entry: AdmZip.IZipEntry) {
+    this.#entry = entry;
+    this.name = entry.entryName;
+  }
+
+  read(password: string) {}
+
+  raw() {
+    return this.#entry;
+  }
+}
+
 /**
  * pubsie main class for parsing epub files
  */
@@ -77,10 +93,7 @@ export class Pubsie {
     }
 
     let pathToOpf = this.#getOpfRootfile();
-
-    if (pathToOpf) {
-      content = this.#extractContent(this.#findEntry(pathToOpf?.fullPath));
-    }
+    content = this.#extractContent(this.#findEntry(pathToOpf?.fullPath));
 
     return this.#epub;
   }
@@ -102,7 +115,7 @@ export class Pubsie {
     if (!result)
       throw new ExtractionError(
         "entry not found or unreadable",
-        entry.entryName
+        entry.entryName,
       );
 
     return result;
@@ -113,16 +126,21 @@ export class Pubsie {
     const expectedMediaType = "application/oebps-package+xml";
 
     if (rootfiles) {
-      return rootfiles?.find((rf) => {
-        rf.mediaType === expectedMediaType;
+      let rootfile = rootfiles.find((rf) => {
+        return rf.mediaType === expectedMediaType;
       });
-    } else {
-      throw new MimetypeError(
-        "container has no rootfile with required mimetype",
-        undefined,
-        expectedMediaType
-      );
+
+      if (rootfile) {
+        return rootfile;
+      }
     }
+
+    // console.log(rootfiles)
+    throw new MimetypeError(
+      "container has no rootfile with required mimetype",
+      undefined,
+      expectedMediaType,
+    );
   }
 
   #validateMimetype() {
@@ -134,7 +152,7 @@ export class Pubsie {
       throw new MimetypeError(
         "invalid mimetype in epub archive",
         actualMimetype,
-        MIMETYPE
+        MIMETYPE,
       );
     }
   }
