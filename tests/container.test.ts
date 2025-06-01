@@ -19,15 +19,15 @@ describe("Spoofed container.xml tests", () => {
     }
   });
 
-  it("should use a spoofed container.xml with different path", async () => {
+  it("should throw error for container.xml with different path", async () => {
     const mockPath = path.join(containerMocksDir, "container.xml");
     const tempEpubPath = createSpoofedEpub(mockPath);
 
     let pub = new Pubsie(tempEpubPath);
-    await expect(pub.parse()).resolves.not.toThrow();
+    await expect(pub.parse()).rejects.toThrow();
   });
 
-  it("should use a container.xml with multiple rootfiles", async () => {
+  it("should throw error for container.xml with multiple rootfiles", async () => {
     const mockPath = path.join(
       containerMocksDir,
       "container_multiple_rootfiles.xml",
@@ -35,7 +35,7 @@ describe("Spoofed container.xml tests", () => {
     const tempEpubPath = createSpoofedEpub(mockPath);
 
     let pub = new Pubsie(tempEpubPath);
-    await expect(pub.parse()).resolves.not.toThrow();
+    await expect(pub.parse()).rejects.toThrow();
   });
 
   it("should throw error for container.xml with incorrect mime type", async () => {

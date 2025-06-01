@@ -39,16 +39,21 @@ interface Epub {
 
 class Entry {
   #entry: AdmZip.IZipEntry;
+  #contentBuffer: Buffer;
   public name: string;
 
-  constructor(entry: AdmZip.IZipEntry) {
+  constructor(entry: AdmZip.IZipEntry, contentBuffer: Buffer) {
     this.#entry = entry;
+    this.#contentBuffer = contentBuffer;
+
     this.name = entry.entryName;
   }
 
-  read(password: string) {}
+  rawRead(): Buffer {
+    return this.#contentBuffer;
+  }
 
-  raw() {
+  rawEntryObject(): AdmZip.IZipEntry {
     return this.#entry;
   }
 }
@@ -59,7 +64,7 @@ class Entry {
 export class Pubsie {
   #file: string;
   #password: string | undefined;
-  #entries!: AdmZip.IZipEntry[];
+  #entries!: Map<string, Entry>;
   #zip!: AdmZip;
   #epub!: Epub;
 
@@ -73,33 +78,31 @@ export class Pubsie {
   }
 
   async parse(): Promise<Epub> {
-    const meta_inf = "META-INF/";
+    const metaDir = "META-INF/";
 
     // check if epub is encrypted, if encrypted throw error and stop parsing
     try {
-      this.#findEntry(meta_inf + "encryption.xml");
+      this.#findEntry(metaDir + "encryption.xml");
     } catch (err: any) {
       if (!(err instanceof EntryNotFoundError)) {
         throw err;
       }
     }
 
-    let content = this.#extractContent(
-      this.#findEntry(meta_inf + "container.xml"),
-    );
+    let content = this.#findEntry(metaDir + "container.xml").rawRead();
 
     if (content) {
       this.#epub.container = await parseContainer(content);
     }
 
     let pathToOpf = this.#getOpfRootfile();
-    content = this.#extractContent(this.#findEntry(pathToOpf?.fullPath));
+    content = this.#findEntry(pathToOpf?.fullPath).rawRead();
 
     return this.#epub;
   }
 
-  #findEntry(entryName: string): AdmZip.IZipEntry {
-    const entry = this.#entries.find((e) => e.entryName === entryName);
+  #findEntry(entryName: string): Entry {
+    const entry = this.#entries.get(entryName);
 
     if (!entry) {
       throw new EntryNotFoundError("Entry not found: ", entryName);
@@ -135,7 +138,6 @@ export class Pubsie {
       }
     }
 
-    // console.log(rootfiles)
     throw new MimetypeError(
       "container has no rootfile with required mimetype",
       undefined,
@@ -146,7 +148,7 @@ export class Pubsie {
   #validateMimetype() {
     const mimetypeFile = this.#findEntry("mimetype");
 
-    const mimetype = this.#extractContent(mimetypeFile);
+    const mimetype = mimetypeFile.rawRead();
     const actualMimetype = mimetype.toString("utf-8");
     if (actualMimetype !== MIMETYPE) {
       throw new MimetypeError(
@@ -163,6 +165,14 @@ export class Pubsie {
     }
 
     this.#zip = new AdmZip(this.#file);
-    this.#entries = this.#zip.getEntries();
+    let entryList = this.#zip.getEntries();
+
+    this.#entries = new Map();
+    for (const entry of entryList) {
+      this.#entries.set(
+        entry.entryName,
+        new Entry(entry, this.#extractContent(entry)),
+      );
+    }
   }
 }
